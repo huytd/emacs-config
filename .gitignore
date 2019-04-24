@@ -1,0 +1,8 @@
+*
+!*/
+!custom-scripts/**
+!custom-themes/**
+!init.el
+!init.term.el
+!backup/**
+!.gitignore
