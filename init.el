@@ -10,7 +10,9 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
-(require 'use-package)
+
+(eval-when-compile
+  (require 'use-package))
 
 ;; Custom packages
 (add-to-list 'load-path "/Users/huy/.emacs.d/custom-scripts/")
@@ -18,16 +20,6 @@
 ;; Dvorak Mode
 (require 'dvorak-mode)
 (global-dvorak-mode 1)
-
-;; So Long mode
-(when (require 'so-long nil :noerror)
-  (so-long-enable))
-
-;; ORG to RSS
-(require 'ox-rss)
-
-;; Vterm
-(require 'vterm)
 
 ;; Server
 (if (and (fboundp 'server-running-p)
@@ -40,12 +32,27 @@
 (setq ring-bell-function 'ignore)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-(let ((path (shell-command-to-string ". /Users/huy/.bash_profile; echo -n $PATH")))
-  (setenv "PATH" path)
-  (setq exec-path
-        (append
-         (split-string-and-unquote path ":")
-         exec-path)))
+;; PACKAGES INSTALL
+
+;; Smart Parens
+(use-package smartparens
+  :ensure t
+  :init (smartparens-global-mode 1)
+  :diminish smartparens-mode)
+
+;; Solving $PATH
+(use-package exec-path-from-shell
+  :ensure t
+  :if (memq window-system '(mac ns))
+  :config
+  (setq exec-path-from-shell-arguments '("-l"))
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "GOROOT")
+  (exec-path-from-shell-copy-env "GOPATH")
+  (exec-path-from-shell-copy-env "NPMBIN")
+  (exec-path-from-shell-copy-env "LC_ALL")
+  (exec-path-from-shell-copy-env "LANG")
+  (exec-path-from-shell-copy-env "LC_TYPE"))
 
 (setq make-backup-files nil)
 (setq auto-save-default nil)
@@ -53,18 +60,10 @@
 (setq-default tab-width 2)
 (setq-default default-tab-width 2)
 (setq-default indent-tabs-mode nil)
-(setq-default truncate-lines nil)
+(setq-default truncate-lines -1)
 
 ;; Linum enhancement
 (setq linum-format " %2d ")
-
-;; Dictionary
-(autoload 'ispell-get-word "ispell")
-(add-hook 'eww-after-render-hook 'eww-readable)
-(defun lookup-word (word)
-  (interactive (list (save-excursion (car (ispell-get-word nil)))))
-  (eww (format "http://www.wordreference.com/definition/%s" word)))
-(global-set-key (kbd "M-#") 'lookup-word)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -180,7 +179,7 @@
 (global-unset-key (kbd "C-s"))
 (global-set-key (kbd "C-s") 'helm-occur)
 ;; Functions
-(global-set-key (kbd "C-c f f") 'format-all-buffer)
+(global-set-key (kbd "C-c f f") 'json-pretty-print-buffer)
 (global-set-key (kbd "C-v") 'er/expand-region)
 (global-set-key (kbd "C-c m m") 'mc/mark-all-dwim)
 
@@ -278,22 +277,6 @@
               entry
               filename))))
 
-(defun rss-feed-index (title list)
-  (mapconcat
-   'identity
-   (list
-    (org-list-to-subtree list '(:istart "")))
-    "\n\n"))
-
-(defun rss-feed-custom-entry-format (entry style project)
-  (let ((filename (org-publish-find-title entry project)))
-    (if (= (length filename) 0)
-        ""
-        (format "* %s\n:PROPERTIES:\n:RSS_PERMALINK: %s\n:PUBDATE: <%s>\n:END:\n"
-                filename
-                (replace-regexp-in-string ".org$" ".html" entry)
-                (format-time-string "%Y-%m-%d" (org-publish-find-date entry project))))))
-
 (setq org-publish-project-alist
       '(("org-notes"
          :base-directory "/Users/huy/notes/src/"
@@ -314,37 +297,7 @@
          :base-extension "jpg\\|png\\|gif\\|mp4"
          :publishing-directory "/Users/huy/code/play/huytd.github.io/"
          :publishing-function org-publish-attachment)
-        ("rss-sitemap"
-         :base-directory "/Users/huy/notes/src/"
-         :base-extension "org"
-         :html-link-home "/"
-         :html-link-use-abs-url t
-         :html-link-org-files-as-html t
-         :recursive t
-         :exclude "index.org\\|rss.org\\|.*/private/.*"
-         :include ("rss.org")
-         :auto-sitemap t
-         :sitemap-filename "rss.org"
-         :sitemap-title "jft :: CoffeeAddict"
-         :sitemap-function rss-feed-index
-         :sitemap-format-entry rss-feed-custom-entry-format
-         :sitemap-sort-files anti-chronologically
-         :with-toc nil
-         :section-numbers nil)
-        ("rss-feed"
-         :base-directory "/Users/huy/notes/src/"
-         :base-extension "org"
-         :publishing-directory "/Users/huy/code/play/huytd.github.io/"
-         :publishing-function (org-rss-publish-to-rss)
-         :html-link-use-abs-url t
-         :html-link-org-files-as-html t
-         :exclude ".*"
-         :include ("rss.org")
-         :html-link-home "/"
-         :with-toc nil
-         :section-number nil)
-        ("rss" :components ("rss-sitemap" "rss-feed"))
-        ("notes" :components ("org-notes" "org-notes-static" "rss"))))
+        ("notes" :components ("org-notes" "org-notes-static"))))
 
 (add-to-list 'org-structure-template-alist
              '("o" "#+TITLE: ?\n#+DATE: "))
@@ -487,7 +440,6 @@
   :config
   (define-key neotree-mode-map (kbd "C-c C-m") 'neotree-create-node))
 
-
 ;; Which Key
 (use-package which-key
   :ensure t
@@ -533,12 +485,6 @@
 (use-package company-arduino
   :after (arduino-mode company)
   :ensure t)
-
-;; Format code
-(use-package format-all :ensure t)
-
-;; CoffeeScript
-(use-package coffee-mode :ensure t)
 
 ;; JavaScript
 (use-package js2-mode
@@ -680,16 +626,6 @@
     :override t)
   )
 
-;; Spell check
-(use-package langtool
-  :ensure t
-  :config
-  (setq langtool-java-classpath "/Users/huy/langtool:/Users/huy/langtool/*")
-  (setq langtool-language-tool-jar "/Users/huy/langtool/languagetool-commandline.jar"))
-
-;; Writegood
-(use-package writegood-mode :ensure t)
-
 ;; Elm
 (use-package elm-mode
   :ensure t
@@ -720,30 +656,10 @@
         (error "You're not in a project"))
     (error "helm-ag not available")))
 
-;; IRC
-(defun user/rcirc-print-function (process sender response target text)
-  (if (not (eq target nil))
-      (with-current-buffer (rcirc-get-buffer process target)
-        (cond
-         ((and (equal sender (rcirc-nick process))
-               (equal response "JOIN"))
-          (rcirc-omit-mode)
-          (when (member target neale/rcirc-ignored-channels)
-            (setq rcirc-ignore-buffer-activity-flag t)))))))
-
-(add-hook 'rcirc-print-functions 'user/rcirc-print-function)
-
 ;; Smooth scroll
 (pixel-scroll-mode 1)
-;; scroll one line at a time (less "jumpy" than defaults)
-;;(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
-(setq mouse-wheel-scroll-amount '(0.05)) ;; one line at a time
-(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
-(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 
 ;; Theme
-(use-package doom-themes :ensure t)
-
 (add-to-list 'custom-theme-load-path "/Users/huy/.emacs.d/custom-themes/")
 
 (defun set-dark-theme ()
@@ -809,7 +725,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t)
+ '(helm-M-x-fuzzy-match t t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -844,7 +760,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (ace-jump vlf lsp-haskell coffee-mode indium format-all golden-ratio multiple-cursors expand-region org-capture-pop-frame purescript-mode helm-swoop company-arduino all-the-icons-dired groovy-mode multi-term writegood-mode deft ace-jump-mode package-lint emacs-htmlize langtool go-eldoc go-complete go-stacktracer go-mode helm-ag mu4e cargo evil-matchit org-autolist evil-surround evil-smartparens smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust spaceline-all-the-icons flycheck-inline lsp-rust f lsp-mode rust-mode pdf-tools company js2-mode diff-hl editorconfig general which-key helm doom-themes evil use-package)))
+    (ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company js2-mode diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
@@ -904,3 +820,4 @@
  '(vertical-border ((t (:background "#161616" :foreground "#413e52"))))
  '(window-divider ((t (:foreground "#413e52"))))
  '(window-divider-first-pixel ((t (:foreground "#655f7f")))))
+(put 'narrow-to-region 'disabled nil)
