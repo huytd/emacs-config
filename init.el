@@ -15,7 +15,8 @@
   (require 'use-package))
 
 ;; Custom packages
-(add-to-list 'load-path "/Users/huy/.emacs.d/custom-scripts/")
+(let ((default-directory  "/Users/huy/.emacs.d/custom-scripts/"))
+  (normal-top-level-add-to-load-path '("dvorak")))
 
 ;; Dvorak Mode
 (require 'dvorak-mode)
@@ -31,6 +32,17 @@
 (global-auto-revert-mode 1)
 (setq ring-bell-function 'ignore)
 (defalias 'yes-or-no-p 'y-or-n-p)
+
+;; Smooth scroll
+(pixel-scroll-mode 1)
+
+;; Make mouse wheel / trackpad scrolling less jerky
+(setq mouse-wheel-scroll-amount '(1
+                                  ((shift) . 5)
+                                  ((control))))
+(dolist (multiple '("" "double-" "triple-"))
+  (dolist (direction '("right" "left"))
+    (global-set-key (read-kbd-macro (concat "<" multiple "wheel-" direction ">")) 'ignore)))
 
 ;; PACKAGES INSTALL
 
@@ -166,8 +178,10 @@
                               (end-of-line)
                               (newline-and-indent)))
 (global-set-key (kbd "C-c C-l") 'copy-line)
-(global-set-key (kbd "C-c >") 'indent-rigidly-right-to-tab-stop)
-(global-set-key (kbd "C-c <") 'indent-rigidly-left-to-tab-stop)
+(global-set-key (kbd "M-<up>") 'beginning-of-buffer)
+(global-set-key (kbd "M-<down>") 'end-of-buffer)
+(global-set-key (kbd "M-<right>") 'indent-rigidly-right-to-tab-stop)
+(global-set-key (kbd "M-<left>") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "C-x SPC") 'cua-rectangle-mark-mode)
 (global-set-key (kbd "C-c l") 'join-line)
 (global-set-key (kbd "C-c n") (lambda () (interactive) (join-line -1)))
@@ -342,11 +356,16 @@
         ("DONE"    . "#6ab04c")))
 
 ;; UI configurations
-(scroll-bar-mode -1)
-(tool-bar-mode   -1)
-(tooltip-mode    -1)
-(menu-bar-mode   -1)
-(global-linum-mode 1)
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode   -1))
+(when (fboundp 'tooltip-mode)
+  (tooltip-mode    -1))
+(when (fboundp 'menu-bar-mode)
+  (menu-bar-mode   -1))
+(when (fboundp 'global-linum-mode)
+  (global-linum-mode 1))
 (setq-default line-spacing 0.1)
 (add-to-list 'default-frame-alist '(font . "Tamzen-14:antialias=true:hinting=false"))
 (add-to-list 'default-frame-alist '(height . 38))
@@ -656,9 +675,6 @@
         (error "You're not in a project"))
     (error "helm-ag not available")))
 
-;; Smooth scroll
-(pixel-scroll-mode 1)
-
 ;; Theme
 (add-to-list 'custom-theme-load-path "/Users/huy/.emacs.d/custom-themes/")
 
@@ -687,19 +703,7 @@
    '(mode-line-inactive ((t (:background "#2a2835" :foreground "#4d4961" :box nil))))
    '(window-divider-first-pixel ((t (:foreground "#655f7f"))))))
 
-(defun set-term-theme ()
-  "Set the dark theme with some customization if needed."
-  (interactive)
-  (load-theme 'ayu t)
-  (global-linum-mode -1)
-  (setq-default mode-line-format nil)
-  (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :background "#202020" :foreground "#ffffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight thin :width normal))))))
-
-(if (display-graphic-p)
-    (progn
-      (set-dark-theme))
-  (set-term-theme))
+(set-dark-theme)
 
 ;; Automatically generated
 (custom-set-variables

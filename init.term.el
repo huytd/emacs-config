@@ -120,7 +120,7 @@
 (global-unset-key (kbd "C-s"))
 (global-set-key (kbd "C-s") 'helm-occur)
 ;; Functions
-(global-set-key (kbd "C-c f f") 'format-all-buffer)
+(global-set-key (kbd "C-c f f") 'json-pretty-print-buffer)
 (global-set-key (kbd "C-v") 'er/expand-region)
 (global-set-key (kbd "C-c m m") 'mc/mark-all-dwim)
 
@@ -352,12 +352,6 @@
   :after (arduino-mode company)
   :ensure t)
 
-;; Format code
-(use-package format-all :ensure t)
-
-;; CoffeeScript
-(use-package coffee-mode :ensure t)
-
 ;; JavaScript
 (use-package js2-mode
   :ensure t
@@ -581,9 +575,6 @@
  '(org-agenda-window-setup (quote only-window) t)
  '(org-directory "~/notes/")
  '(org-journal-list-create-list-buffer nil)
- '(package-selected-packages
-   (quote
-    (intero coffee-mode indium format-all golden-ratio multiple-cursors expand-region org-capture-pop-frame purescript-mode helm-swoop company-arduino all-the-icons-dired groovy-mode multi-term writegood-mode minimap deft ace-jump-mode package-lint emacs-htmlize langtool go-eldoc go-complete go-stacktracer go-mode helm-ag mu4e cargo evil-matchit org-autolist evil-surround evil-smartparens smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust spaceline-all-the-icons flycheck-inline lsp-rust f lsp-mode rust-mode pdf-tools company js2-mode diff-hl editorconfig general which-key helm doom-themes evil use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
