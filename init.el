@@ -624,21 +624,22 @@
        (propertize " ⛯ "
                    'face '(:foreground "orange")))
       ((not (buffer-modified-p))
-       (propertize " ⛆ "
+       (propertize " "
                    'face '(:foreground "gray85"))))))
-  '(:eval (propertize (all-the-icons-icon-for-mode major-mode :height (/ all-the-icons-scale-factor 1.4) :v-adjust -0.03)))
+  '(:eval (propertize (all-the-icons-icon-for-mode major-mode :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)))
   " %f "
   'mode-line-position
   "["
   'mode-name
   "] "
+  '(:eval (propertize (all-the-icons-octicon "git-branch" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.03)))
   '(:eval
     (if vc-mode
         (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
                (face (cond ((string-match "^ -" noback) 'mode-line-vc)
                            ((string-match "^ [:@]" noback) 'mode-line-vc-edit)
                            ((string-match "^ [!\\?]" noback) 'mode-line-vc-modified))))
-          (format "[git:%s]" (substring noback 2)))))))
+          (format " %s" (substring noback 2)))))))
 
 ;; Quickrun
 (use-package quickrun
@@ -691,7 +692,7 @@
   (interactive)
   (load-theme 'ayu t)
   (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :background "#2b2836" :foreground "#dbe6fb" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight thin :width normal))))
+   '(default ((t (:inherit nil :stipple nil :background "#2C2525" :foreground "#EAEDF3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight thin :width normal))))
    '(company-template-field ((t (:background "#f7cc62" :foreground "black"))))
    '(company-tooltip ((t (:background "#f7cc62" :foreground "black"))))
    '(company-tooltip-selection ((t (:background "#f58c31"))))
@@ -704,12 +705,12 @@
    '(helm-selection ((t (:foreground "#f7cc62" :inverse-video t))))
    '(helm-source-header ((t (:foreground "white" :weight bold :height 1.0))))
    '(neo-dir-link-face ((t (:foreground "gray85"))))
-   '(vertical-border ((t (:background "#161616" :foreground "#413e52"))))
-   '(window-divider ((t (:foreground "#413e52"))))
-   '(linum ((t (:inherit default :background nil :foreground "#413e52" :strike-through nil :underline nil :slant normal :weight normal))))
-   '(mode-line ((t (:background "#413e52" :foreground "#8b86a4" :box (:line-width 1 :color "#413e52" :style unspecified) :overline "#413e52" :underline nil))))
-   '(mode-line-inactive ((t (:background "#2a2835" :foreground "#4d4961" :box nil))))
-   '(window-divider-first-pixel ((t (:foreground "#655f7f"))))))
+   '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
+   '(window-divider ((t (:foreground "#211C1C"))))
+   '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
+   '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
+   '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
+   '(window-divider-first-pixel ((t (:foreground "#211C1C"))))))
 
 (set-dark-theme)
 
@@ -737,7 +738,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t t)
+ '(helm-M-x-fuzzy-match t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -802,11 +803,12 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#2b2836" :foreground "#dbe6fb" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight thin :width normal))))
+ '(default ((t (:inherit nil :stipple nil :background "#2C2525" :foreground "#EAEDF3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight thin :width normal))))
  '(bold ((t (:foreground "orange1" :weight extra-bold))))
  '(company-template-field ((t (:background "#f7cc62" :foreground "black"))))
  '(company-tooltip ((t (:background "#f7cc62" :foreground "black"))))
  '(company-tooltip-selection ((t (:background "#f58c31"))))
+ '(font-lock-comment-face ((t (:foreground "#71696A" :slant italic))))
  '(fringe ((t (:background nil))))
  '(helm-candidate-number ((t (:background "#f7cc62" :foreground "black"))))
  '(helm-ff-directory ((t (:foreground "OrangeRed1"))))
@@ -825,11 +827,12 @@
  '(helm-selection ((t (:foreground "#f7cc62" :inverse-video t))))
  '(helm-source-header ((t (:foreground "white" :weight bold :height 1.0))))
  '(helm-visible-mark ((t nil)))
- '(linum ((t (:inherit default :background nil :foreground "#413e52" :strike-through nil :underline nil :slant normal :weight normal))))
- '(mode-line ((t (:background "#413e52" :foreground "#8b86a4" :box (:line-width 1 :color "#413e52" :style unspecified) :overline "#413e52" :underline nil))))
- '(mode-line-inactive ((t (:background "#2a2835" :foreground "#4d4961" :box nil))))
+ '(js2-function-param ((t (:foreground "#F18D73"))))
+ '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
+ '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
+ '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
  '(neo-dir-link-face ((t (:foreground "gray85"))))
- '(vertical-border ((t (:background "#161616" :foreground "#413e52"))))
- '(window-divider ((t (:foreground "#413e52"))))
- '(window-divider-first-pixel ((t (:foreground "#655f7f")))))
+ '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
+ '(window-divider ((t (:foreground "#211C1C"))))
+ '(window-divider-first-pixel ((t (:foreground "#211C1C")))))
 (put 'narrow-to-region 'disabled nil)
