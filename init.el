@@ -632,7 +632,9 @@
   "["
   'mode-name
   "] "
-  '(:eval (propertize (all-the-icons-octicon "git-branch" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.03)))
+  '(:eval
+    (if vc-mode
+        (propertize (all-the-icons-octicon "git-branch" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.03))))
   '(:eval
     (if vc-mode
         (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
