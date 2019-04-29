@@ -643,8 +643,8 @@
         (cond
          (buffer-read-only
           (format " %s"
-                  (propertize (all-the-icons-octicon "lock" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)
-                              'face '(:foreground "red" :weight 'bold))))
+                  (propertize (all-the-icons-faicon "coffee" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)
+                              'face '(:foreground "red"))))
          ((buffer-modified-p)
           (format " %s"
                   (propertize (all-the-icons-faicon "chain-broken" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)
