@@ -46,6 +46,14 @@
 
 ;; PACKAGES INSTALL
 
+;; Highlight Indent (like Sublime)
+(use-package highlight-indent-guides
+  :ensure t
+  :config
+  (setq highlight-indent-guides-method 'character)
+  (setq highlight-indent-guides-character ?\│)
+  :hook ((prog-mode . highlight-indent-guides-mode)))
+
 ;; Smart Parens
 (use-package smartparens
   :ensure t
@@ -366,7 +374,7 @@
   (menu-bar-mode   -1))
 (when (fboundp 'global-linum-mode)
   (global-linum-mode 1))
-(setq-default line-spacing 0.1)
+(setq-default line-spacing 0)
 (add-to-list 'default-frame-alist '(font . "Tamzen-14:antialias=true:hinting=false"))
 (add-to-list 'default-frame-alist '(height . 38))
 (add-to-list 'default-frame-alist '(width . 128))
@@ -764,7 +772,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company js2-mode diff-hl editorconfig general which-key helm use-package)))
+    (highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company js2-mode diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
