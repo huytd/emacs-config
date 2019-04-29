@@ -612,36 +612,62 @@
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
+;; Shrink Path
+(use-package shrink-path
+  :ensure t
+  :demand t)
+
 ;; Modeline
 (setq auto-revert-check-vc-info t)
-(setq-default mode-line-format (list
-  '((:eval
-     (cond
-      (buffer-read-only
-       (propertize " ⚿ "
-                   'face '(:foreground "red" :weight 'bold)))
-      ((buffer-modified-p)
-       (propertize " ⛯ "
-                   'face '(:foreground "orange")))
-      ((not (buffer-modified-p))
-       (propertize " "
-                   'face '(:foreground "gray85"))))))
-  '(:eval (propertize (all-the-icons-icon-for-mode major-mode :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)))
-  " %f "
-  'mode-line-position
-  "["
-  'mode-name
-  "] "
-  '(:eval
-    (if vc-mode
-        (propertize (all-the-icons-octicon "git-branch" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.03))))
-  '(:eval
-    (if vc-mode
-        (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
-               (face (cond ((string-match "^ -" noback) 'mode-line-vc)
-                           ((string-match "^ [:@]" noback) 'mode-line-vc-edit)
-                           ((string-match "^ [!\\?]" noback) 'mode-line-vc-modified))))
-          (format " %s" (substring noback 2)))))))
+
+(defun pretty-buffername ()
+  (if buffer-file-truename
+      (let* ((cur-dir (file-name-directory buffer-file-truename))
+             (two-up-dir (-as-> cur-dir it (or (f-parent it) "") (or (f-parent it) "")))
+             (shrunk (shrink-path-file-mixed two-up-dir cur-dir buffer-file-truename)))
+        (concat (car shrunk)
+                (mapconcat #'identity (butlast (cdr shrunk)) "/")
+                (car (last shrunk))))
+    (buffer-name)))
+
+(defun simple-mode-line-render (left right)
+  "Return a string of `window-width' length containing LEFT, and RIGHT aligned respectively."
+  (let* ((available-width (- (window-total-width) (length left) 1)))
+    (format (format "%%s %%%ds" available-width) left right)))
+
+(setq-default mode-line-format
+  '((:eval (simple-mode-line-render
+    ;; left
+    (format-mode-line (list
+     '((:eval
+        (cond
+         (buffer-read-only
+          (format " %s"
+                  (propertize (all-the-icons-octicon "lock" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)
+                              'face '(:foreground "red" :weight 'bold))))
+         ((buffer-modified-p)
+          (format " %s"
+                  (propertize (all-the-icons-faicon "chain-broken" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)
+                              'face '(:foreground "orange")))))))
+     " "
+     '(:eval (propertize (all-the-icons-icon-for-mode major-mode :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)))
+     '(:eval (format " %s " (pretty-buffername)))
+     "%I "
+     'mode-line-position
+     ))
+    ;; right
+    (format-mode-line (list
+      '(:eval
+        (format "%s %s"
+                mode-name
+                (if vc-mode
+                    (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
+                           (face (cond ((string-match "^ -" noback) 'mode-line-vc)
+                                       ((string-match "^ [:@]" noback) 'mode-line-vc-edit)
+                                       ((string-match "^ [!\\?]" noback) 'mode-line-vc-modified)))
+                           (icon (propertize (all-the-icons-octicon "git-branch" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.03))))
+                      (format "%s %s" icon (substring noback 2)))
+                  "")))))))))
 
 ;; Quickrun
 (use-package quickrun
@@ -775,7 +801,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company js2-mode diff-hl editorconfig general which-key helm use-package)))
+    (shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company js2-mode diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
