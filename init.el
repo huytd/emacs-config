@@ -635,6 +635,31 @@
   (let* ((available-width (- (window-total-width) (length left) 1)))
     (format (format "%%s %%%ds" available-width) left right)))
 
+(defun insert-icon (type name &optional valign)
+  "Insert an icon based on the TYPE and NAME and VALIGN optional."
+  (or valign (setq valign -0.1))
+  (funcall type name :height (/ all-the-icons-scale-factor 1.5) :v-adjust valign))
+
+(defun custom-modeline-flycheck-status ()
+  "Custom status for flycheck with icons."
+  (let* ((text (pcase flycheck-last-status-change
+                 (`finished (if flycheck-current-errors
+                    (let ((count (let-alist (flycheck-count-errors flycheck-current-errors)
+                                   (+ (or .warning 0) (or .error 0)))))
+                       (format "%s %s" (insert-icon 'all-the-icons-faicon "bug") count))
+                       (format "%s" (insert-icon 'all-the-icons-faicon "check"))))
+                 (`running  (format "%s Running" (insert-icon 'all-the-icons-faicon "spinner" -0.15)))
+                 (`no-checker  (format "%s No Checker" (insert-icon 'all-the-icons-material "warning" -0.15)))
+                 (`not-checked "")
+                 (`errored     (format "%s Error" (insert-icon 'all-the-icons-material "warning" -0.15)))
+                 (`interrupted (format "%s Interrupted" (insert-icon 'all-the-icons-faicon "stop" -0.15)))
+                 (`suspicious  ""))))
+    (propertize text
+                'help-echo "Show Flycheck Errors"
+                'mouse-face '(:box 1)
+                'local-map (make-mode-line-mouse-map
+                            'mouse-1 (lambda () (interactive) (flycheck-list-errors))))))
+
 (setq-default mode-line-format
   '((:eval (simple-mode-line-render
     ;; left
@@ -643,14 +668,14 @@
         (cond
          (buffer-read-only
           (format " %s"
-                  (propertize (all-the-icons-faicon "coffee" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)
+                  (propertize (insert-icon 'all-the-icons-faicon "coffee")
                               'face '(:foreground "red"))))
          ((buffer-modified-p)
           (format " %s"
-                  (propertize (all-the-icons-faicon "chain-broken" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)
+                  (propertize (insert-icon 'all-the-icons-faicon "chain-broken")
                               'face '(:foreground "orange")))))))
      " "
-     '(:eval (propertize (all-the-icons-icon-for-mode major-mode :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.1)))
+     '(:eval (propertize (insert-icon 'all-the-icons-icon-for-mode major-mode)))
      '(:eval (format " %s " (pretty-buffername)))
      "%I "
      'mode-line-position
@@ -658,16 +683,17 @@
     ;; right
     (format-mode-line (list
       '(:eval
-        (format "%s %s"
+        (format "%s %s %s"
                 mode-name
                 (if vc-mode
                     (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
                            (face (cond ((string-match "^ -" noback) 'mode-line-vc)
                                        ((string-match "^ [:@]" noback) 'mode-line-vc-edit)
                                        ((string-match "^ [!\\?]" noback) 'mode-line-vc-modified)))
-                           (icon (propertize (all-the-icons-octicon "git-branch" :height (/ all-the-icons-scale-factor 1.5) :v-adjust -0.03))))
+                           (icon (propertize (insert-icon 'all-the-icons-octicon "git-branch" -0.03))))
                       (format "%s %s" icon (substring noback 2)))
-                  "")))))))))
+                  "")
+                (custom-modeline-flycheck-status)))))))))
 
 ;; Quickrun
 (use-package quickrun
