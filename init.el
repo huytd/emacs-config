@@ -44,6 +44,14 @@
 ;; Smooth scroll
 (pixel-scroll-mode -1)
 
+;; Yascroll
+(use-package yascroll
+  :ensure t
+  :init
+  (global-yascroll-bar-mode 1)
+  :config
+  (setq yascroll:delay-to-hide nil))
+
 ;; Make mouse wheel / trackpad scrolling less jerky
 (setq mouse-wheel-scroll-amount '(1
                                   ((control))))
@@ -830,7 +838,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (yascroll shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
@@ -885,11 +893,13 @@
  '(helm-selection ((t (:foreground "#f7cc62" :inverse-video t))))
  '(helm-source-header ((t (:foreground "white" :weight bold :height 1.0))))
  '(helm-visible-mark ((t nil)))
+ '(js2-function-param ((t (:foreground "#F18D73"))))
  '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
  '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
  '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
  '(neo-dir-link-face ((t (:foreground "gray85"))))
  '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
  '(window-divider ((t (:foreground "#211C1C"))))
- '(window-divider-first-pixel ((t (:foreground "#211C1C")))))
+ '(window-divider-first-pixel ((t (:foreground "#211C1C"))))
+ '(yascroll:thumb-fringe ((t (:background "#6c5b5b" :foreground "#6c5b5b")))))
 (put 'narrow-to-region 'disabled nil)
