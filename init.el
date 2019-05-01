@@ -42,11 +42,10 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 ;; Smooth scroll
-(pixel-scroll-mode 1)
+(pixel-scroll-mode -1)
 
 ;; Make mouse wheel / trackpad scrolling less jerky
-(setq mouse-wheel-scroll-amount '(0
-                                  ((shift) . 5)
+(setq mouse-wheel-scroll-amount '(1
                                   ((control))))
 (dolist (multiple '("" "double-" "triple-"))
   (dolist (direction '("right" "left"))
