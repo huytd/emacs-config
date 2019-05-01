@@ -45,7 +45,7 @@
 (pixel-scroll-mode 1)
 
 ;; Make mouse wheel / trackpad scrolling less jerky
-(setq mouse-wheel-scroll-amount '(1
+(setq mouse-wheel-scroll-amount '(0
                                   ((shift) . 5)
                                   ((control))))
 (dolist (multiple '("" "double-" "triple-"))
