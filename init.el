@@ -44,6 +44,15 @@
 ;; Smooth scroll
 (pixel-scroll-mode -1)
 
+(use-package ranger
+  :ensure t
+  :config
+  (setq ranger-hide-cursor nil)
+  (setq ranger-show-literal t)
+  (setq ranger-dont-show-binary t)
+  :init
+  (ranger-override-dired-mode 1))
+
 ;; Yascroll
 (use-package yascroll
   :ensure t
@@ -233,6 +242,8 @@
                               (interactive)
                               (backward-sexp)
                               (kill-sexp)))
+(global-unset-key (kbd "C-x d"))
+(global-set-key (kbd "C-x d") 'ranger)
 ;; Window management
 (global-set-key (kbd "C-c =") 'balance-windows)
 (global-set-key (kbd "C-c /") 'split-window-right)
@@ -528,7 +539,9 @@
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . typescript-mode))
   (add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-mode))
-  (setq web-mode-enable-current-element-highlight t))
+  (setq web-mode-enable-current-element-highlight t)
+  :config
+  (define-key web-mode-map (kbd "%") 'web-mode-tag-match))
 
 ;; Purescript
 (use-package purescript-mode
@@ -546,10 +559,7 @@
 (use-package flycheck :ensure t)
 
 ;; LSP
-(use-package lsp-mode
-  :ensure t
-  :init
-  (add-hook 'rust-mode-hook 'lsp))
+(use-package lsp-mode :ensure t)
 
 (use-package lsp-ui
   :ensure t
@@ -594,7 +604,9 @@
 (use-package rust-mode
   :ensure t
   :init
-  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode)))
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+  :hook ((rust-mode . lsp-mode)
+         (rust-mode . flycheck-mode)))
 
 (use-package cargo
   :ensure t
@@ -838,7 +850,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (yascroll shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (ranger yascroll shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
@@ -873,6 +885,8 @@
  '(company-template-field ((t (:background "#f7cc62" :foreground "black"))))
  '(company-tooltip ((t (:background "#f7cc62" :foreground "black"))))
  '(company-tooltip-selection ((t (:background "#f58c31"))))
+ '(fixed-pitch ((t (:family "CodingFontTobi"))))
+ '(fixed-pitch-serif ((t (:family "CodingFontTobi"))))
  '(font-lock-comment-delimiter-face ((t (:foreground "#71696A" :slant italic))))
  '(font-lock-comment-face ((t (:foreground "#71696A" :slant italic))))
  '(fringe ((t (:background nil))))
