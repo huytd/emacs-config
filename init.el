@@ -27,6 +27,14 @@
          (not (server-running-p)))
    (server-start))
 
+;; Solving $PATH
+(let ((path "/Users/huy/.cargo/bin:/Users/huy/.nvm/versions/node/v9.6.1/bin:/usr/local/opt/texinfo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/opt/X11/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/huy/.local/bin:/Users/huy/go:/Users/huy/go/bin:/usr/local/opt/go/libexec/bin"))
+  (setenv "PATH" path)
+  (setq exec-path
+        (append
+         (split-string-and-unquote path ":")
+         exec-path)))
+
 ;; Other configs
 (setq confirm-kill-emacs 'yes-or-no-p)
 (global-auto-revert-mode 1)
@@ -59,20 +67,6 @@
   :ensure t
   :init (smartparens-global-mode 1)
   :diminish smartparens-mode)
-
-;; Solving $PATH
-(use-package exec-path-from-shell
-  :ensure t
-  :if (memq window-system '(mac ns))
-  :config
-  (setq exec-path-from-shell-arguments '("-l"))
-  (exec-path-from-shell-initialize)
-  (exec-path-from-shell-copy-env "GOROOT")
-  (exec-path-from-shell-copy-env "GOPATH")
-  (exec-path-from-shell-copy-env "NPMBIN")
-  (exec-path-from-shell-copy-env "LC_ALL")
-  (exec-path-from-shell-copy-env "LANG")
-  (exec-path-from-shell-copy-env "LC_TYPE"))
 
 (setq make-backup-files nil)
 (setq auto-save-default nil)
@@ -514,17 +508,18 @@
   :ensure t)
 
 ;; JavaScript
-(use-package js2-mode
-  :ensure t
-  :init
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-  :hook ((js2-mode . js2-imenu-extras-mode)))
+;;(use-package js2-mode
+;;  :ensure t
+;;  :init
+;;  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+;;  :hook ((js2-mode . js2-imenu-extras-mode)))
 
 (use-package tide
   :ensure t
   :after (typescript-mode company flycheck)
   :hook ((typescript-mode . tide-setup)
          (typescript-mode . tide-hl-identifier-mode)
+         (typescript-mode . flycheck-mode)
          (js2-mode . tide-setup)
          (js2-mode . tide-hl-identifier-mode)
          (before-save . tide-formater-before-save)))
@@ -534,6 +529,7 @@
   :init
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . typescript-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-mode))
   (setq web-mode-enable-current-element-highlight t))
 
 ;; Purescript
@@ -630,9 +626,28 @@
                 (car (last shrunk))))
     (buffer-name)))
 
+;; Well, this is stupid, but the icons I have on my modeline measured at approximate
+;; 2 characters length each. So, in order for the simple-mode-line-render to render
+;; properly, I need to add these length for each icon added.
+(defun calculate-icons-width ()
+  (let ((left-icon-length 2)
+        (right-icon-length 2))
+  (+ left-icon-length (pcase flycheck-last-status-change
+         (`finished (if flycheck-current-errors
+                        (let ((count (let-alist (flycheck-count-errors flycheck-current-errors)
+                                       (+ (or .warning 0) (or .error 0)))))
+                          right-icon-length)
+                      right-icon-length))
+         (`running  right-icon-length)
+         (`no-checker  right-icon-length)
+         (`not-checked 0)
+         (`errored     right-icon-length)
+         (`interrupted right-icon-length)
+         (`suspicious  0)))))
+
 (defun simple-mode-line-render (left right)
   "Return a string of `window-width' length containing LEFT, and RIGHT aligned respectively."
-  (let* ((available-width (- (window-total-width) (length left) 1)))
+  (let* ((available-width (- (window-total-width) (length left) (calculate-icons-width))))
     (format (format "%%s %%%ds" available-width) left right)))
 
 (defun insert-icon (type name &optional valign)
@@ -677,9 +692,7 @@
      " "
      '(:eval (propertize (insert-icon 'all-the-icons-icon-for-mode major-mode)))
      '(:eval (format " %s " (pretty-buffername)))
-     "%I "
-     'mode-line-position
-     ))
+     "| %I L%l"))
     ;; right
     (format-mode-line (list
       '(:eval
@@ -793,7 +806,7 @@
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
  '(helm-M-x-fuzzy-match t)
- '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
+ '(helm-ag-base-command "rg --no-heading --ignore-case -F -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
  '(helm-autoresize-min-height 20)
@@ -862,6 +875,7 @@
  '(company-template-field ((t (:background "#f7cc62" :foreground "black"))))
  '(company-tooltip ((t (:background "#f7cc62" :foreground "black"))))
  '(company-tooltip-selection ((t (:background "#f58c31"))))
+ '(font-lock-comment-delimiter-face ((t (:foreground "#71696A" :slant italic))))
  '(font-lock-comment-face ((t (:foreground "#71696A" :slant italic))))
  '(fringe ((t (:background nil))))
  '(helm-candidate-number ((t (:background "#f7cc62" :foreground "black"))))
