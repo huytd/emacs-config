@@ -507,21 +507,12 @@
   :after (arduino-mode company)
   :ensure t)
 
-;; JavaScript
-;;(use-package js2-mode
-;;  :ensure t
-;;  :init
-;;  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-;;  :hook ((js2-mode . js2-imenu-extras-mode)))
-
 (use-package tide
   :ensure t
   :after (typescript-mode company flycheck)
   :hook ((typescript-mode . tide-setup)
          (typescript-mode . tide-hl-identifier-mode)
          (typescript-mode . flycheck-mode)
-         (js2-mode . tide-setup)
-         (js2-mode . tide-hl-identifier-mode)
          (before-save . tide-formater-before-save)))
 
 (use-package web-mode
@@ -840,7 +831,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company js2-mode diff-hl editorconfig general which-key helm use-package)))
+    (shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
@@ -895,7 +886,6 @@
  '(helm-selection ((t (:foreground "#f7cc62" :inverse-video t))))
  '(helm-source-header ((t (:foreground "white" :weight bold :height 1.0))))
  '(helm-visible-mark ((t nil)))
- '(js2-function-param ((t (:foreground "#F18D73"))))
  '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
  '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
  '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
