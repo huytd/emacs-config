@@ -207,9 +207,11 @@
 (global-set-key (kbd "M-l") 'ace-jump-line-mode)
 ;; Searching
 (global-set-key (kbd "C-c s") 'helm-projectile-ag)
+(global-set-key (kbd "C-c ;") 'helm-projectile-ag)
 (global-set-key (kbd "C-x .") 'helm-resume)
 (global-unset-key (kbd "C-s"))
 (global-set-key (kbd "C-s") 'helm-occur)
+(global-set-key (kbd "C-;") 'helm-occur)
 ;; Functions
 (global-set-key (kbd "C-c f f") 'json-pretty-print-buffer)
 (global-set-key (kbd "C-v") 'er/expand-region)
