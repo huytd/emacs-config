@@ -16,11 +16,11 @@
 
 ;; Custom packages
 (let ((default-directory  "/Users/huy/.emacs.d/custom-scripts/"))
-  (normal-top-level-add-to-load-path '("dvorak")))
+  (normal-top-level-add-to-load-path '("qwerty")))
 
 ;; Dvorak Mode
-(require 'dvorak-mode)
-(global-dvorak-mode 1)
+(require 'qwerty-mode)
+(global-qwerty-mode 1)
 
 ;; Server
 (if (and (fboundp 'server-running-p)
@@ -912,6 +912,7 @@
  '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
  '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
  '(neo-dir-link-face ((t (:foreground "gray85"))))
+ '(tide-hl-identifier-face ((t (:inherit highlight :inverse-video t))))
  '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
  '(window-divider ((t (:foreground "#211C1C"))))
  '(window-divider-first-pixel ((t (:foreground "#211C1C"))))
