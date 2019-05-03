@@ -212,15 +212,30 @@
 (global-unset-key (kbd "C-s"))
 (global-set-key (kbd "C-s") 'helm-occur)
 (global-set-key (kbd "C-;") 'helm-occur)
+;; Macro
+(defun toggle-kbd-macro-recording-on ()
+  "One-key keyboard macros: turn recording on."
+  (interactive)
+  (define-key global-map (this-command-keys)
+    'toggle-kbd-macro-recording-off)
+  (start-kbd-macro nil))
+
+(defun toggle-kbd-macro-recording-off ()
+  "One-key keyboard macros: turn recording off."
+  (interactive)
+  (define-key global-map (this-command-keys)
+    'toggle-kbd-macro-recording-on)
+  (end-kbd-macro))
+
+(global-set-key (kbd "C-,") 'toggle-kbd-macro-recording-on)
+(global-set-key (kbd "C-.") 'call-last-kbd-macro)
 ;; Functions
 (global-set-key (kbd "C-c f f") 'json-pretty-print-buffer)
 (global-set-key (kbd "C-v") 'er/expand-region)
 (global-set-key (kbd "C-c m m") 'mc/mark-all-dwim)
-
 (global-set-key (kbd "C-c j") 'lsp-find-definition)
 (global-set-key (kbd "C-0") 'quickrun)
 (global-set-key (kbd "C-c SPC") 'lsp-ui-imenu)
-(global-set-key (kbd "C-.") 'repeat)
 (global-unset-key (kbd "C-\\"))
 (global-set-key (kbd "C-\\") 'helm-M-x)
 (global-set-key (kbd "C-c p p") 'helm-projectile-switch-project)
@@ -337,9 +352,6 @@
 
 (add-to-list 'org-structure-template-alist
              '("o" "#+TITLE: ?\n#+DATE: "))
-
-(dolist (hook '(text-mode-hook))
-  (add-hook hook (lambda () (flyspell-mode 1))))
 
 (add-hook 'org-mode-hook 'enhance-ui-for-orgmode)
 
@@ -527,6 +539,7 @@
   :after (arduino-mode company)
   :ensure t)
 
+;; JS TS and Web
 (use-package tide
   :ensure t
   :after (typescript-mode company flycheck)
@@ -544,6 +557,9 @@
   (setq web-mode-enable-current-element-highlight t)
   :config
   (define-key web-mode-map (kbd "%") 'web-mode-tag-match))
+
+;; Swift
+(use-package swift-mode :ensure t)
 
 ;; Purescript
 (use-package purescript-mode
@@ -852,7 +868,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (ranger yascroll shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (swift-mode ranger yascroll shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(vc-annotate-background "#282c34")
