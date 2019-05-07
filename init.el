@@ -242,6 +242,7 @@
                                     (load-file "~/.emacs.d/init.el")))
 (global-set-key (kbd "C-c a t") 'multi-term)
 (global-set-key (kbd "C-c f t") 'neotree-project-dir)
+(global-set-key (kbd "C-c f r") 'neotree-refresh)
 (global-set-key (kbd "C-c C-c") 'lazy-highlight-cleanup)
 (global-set-key (kbd "C-c TAB") 'previous-buffer)
 (global-set-key (kbd "C-x p r") 'helm-show-kill-ring)

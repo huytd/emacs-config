@@ -6,3 +6,5 @@
 !init.term.el
 !backup/**
 !.gitignore
+!/README.md
+!screenshot.png
