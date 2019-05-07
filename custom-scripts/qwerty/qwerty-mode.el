@@ -5,6 +5,10 @@
   :lighter " qwerty"
   :keymap (let ((map (make-sparse-keymap)))
             ;; Movement
+            (define-key map (kbd "C-j") 'next-line)
+            (define-key map (kbd "C-k") 'previous-line)
+            (define-key map (kbd "M-k") 'backward-paragraph)
+            (define-key map (kbd "M-j") 'forward-paragraph)
             (define-key map (kbd "M-p") 'backward-paragraph)
             (define-key map (kbd "M-n") 'forward-paragraph)
             ;; Window Navigation
