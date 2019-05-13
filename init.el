@@ -44,15 +44,6 @@
 ;; Smooth scroll
 (pixel-scroll-mode -1)
 
-(use-package ranger
-  :ensure t
-  :config
-  (setq ranger-hide-cursor nil)
-  (setq ranger-show-literal t)
-  (setq ranger-dont-show-binary t)
-  :init
-  (ranger-override-dired-mode 1))
-
 ;; Make mouse wheel / trackpad scrolling less jerky
 (setq mouse-wheel-scroll-amount '(1
                                   ((control))))
@@ -61,6 +52,16 @@
     (global-set-key (read-kbd-macro (concat "<" multiple "wheel-" direction ">")) 'ignore)))
 
 ;; PACKAGES INSTALL
+
+;; Ranger
+(use-package ranger
+  :ensure t
+  :config
+  (setq ranger-hide-cursor nil)
+  (setq ranger-show-literal t)
+  (setq ranger-dont-show-binary t)
+  :init
+  (ranger-override-dired-mode 1))
 
 ;; Highlight Indent (like Sublime)
 (use-package highlight-indent-guides
@@ -85,7 +86,7 @@
 (setq-default truncate-lines -1)
 
 ;; Linum enhancement
-(setq linum-format " %2d ")
+(setq linum-format "  %3d ")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -117,16 +118,20 @@
 (ad-activate 'term-sentinel)
 
 (defadvice term (before force-bash)
-  (interactive (list "/bin/zsh")))
+  (interactive (list "/usr/local/bin/fish")))
 (ad-activate 'term)
 (add-hook 'term-mode-hook (lambda ()
                             (linum-mode -1)
+                            (setq left-fringe-width 0)
+                            (setq right-fringe-width 0)
+                            (setq buffer-face-mode-face `(:background "#3B3333"))
+                            (buffer-face-mode 1)
                             (local-unset-key (kbd "C-r"))))
 
 (use-package multi-term
   :ensure t
   :config
-  (setq multi-term-program "/bin/zsh"))
+  (setq multi-term-program "/usr/local/bin/fish"))
 
 ;; Expand Region (for vim-like textobject)
 (use-package expand-region :ensure t)
@@ -393,11 +398,15 @@
   (menu-bar-mode   -1))
 (when (fboundp 'global-linum-mode)
   (global-linum-mode 1))
-(setq-default line-spacing 0)
-(add-to-list 'default-frame-alist '(font . "Tamzen-14:antialias=true:hinting=false"))
-(add-to-list 'default-frame-alist '(height . 38))
-(add-to-list 'default-frame-alist '(width . 128))
+(add-to-list 'default-frame-alist '(height . 60))
+(add-to-list 'default-frame-alist '(width . 190))
 (setq left-fringe-width 20)
+
+(set-face-attribute 'default nil :font "Tamzen" :height 140)
+(setq-default line-spacing 0.15)
+
+(add-hook 'markdown-mode-hook
+          (lambda () (face-remap-add-relative 'default :family "Vixel")))
 
 ;; Anzu for search matching
 (use-package anzu
@@ -484,7 +493,14 @@
                 (neotree-find file-name)))
         (message "Could not find git project root."))))
   :config
-  (define-key neotree-mode-map (kbd "C-c C-m") 'neotree-create-node))
+  (define-key neotree-mode-map (kbd "C-c C-m") 'neotree-create-node)
+  (add-hook 'neotree-mode-hook #'hide-mode-line-mode)
+  (add-hook 'neotree-mode-hook (lambda ()
+                                 (linum-mode -1)
+                                 (setq left-fringe-width 0)
+                                 (setq right-fringe-width 0)
+                                 (setq buffer-face-mode-face `(:background "#211C1C"))
+                                 (buffer-face-mode 1))))
 
 ;; Which Key
 (use-package which-key
@@ -510,6 +526,8 @@
 ;; Fancy titlebar for MacOS
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
+;;(add-to-list 'default-frame-alist '(internal-border-width . 10))
+(add-to-list 'default-frame-alist '(undecorated . t))
 (setq ns-use-proxy-icon  nil)
 (setq frame-title-format nil)
 (setq mac-allow-anti-aliasing t)
@@ -539,13 +557,16 @@
   :hook ((typescript-mode . tide-setup)
          (typescript-mode . tide-hl-identifier-mode)
          (typescript-mode . flycheck-mode)
-         (before-save . tide-formater-before-save)))
+         (before-save . tide-formater-before-save))
+  :config
+  (define-key typescript-mode-map (kbd "C-c r") 'tide-refactor))
 
 (use-package web-mode
   :ensure t
   :init
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . typescript-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . typescript-mode))
   (add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-mode))
   (setq web-mode-enable-current-element-highlight t)
   :config
@@ -635,6 +656,8 @@
   :demand t)
 
 ;; Modeline
+(use-package hide-mode-line :ensure t)
+
 (setq auto-revert-check-vc-info t)
 
 (defun pretty-buffername ()
@@ -827,7 +850,7 @@
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
  '(helm-M-x-fuzzy-match t)
- '(helm-ag-base-command "rg --no-heading --ignore-case -F -M300")
+ '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
  '(helm-autoresize-min-height 20)
@@ -842,7 +865,9 @@
  '(helm-split-window-inside-p t)
  '(magit-dispatch-arguments nil)
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n32")))
+ '(multi-term-program "/usr/local/bin/fish")
  '(neo-window-fixed-size nil)
+ '(neo-window-width 35)
  '(newsticker-date-format "(%A)")
  '(newsticker-heading-format "%l
 %t %d %s")
@@ -861,9 +886,10 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (hide-mode-line swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
+ '(term-default-bg-color "#3B3333")
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map
    (list
@@ -923,6 +949,9 @@
  '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
  '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
  '(neo-dir-link-face ((t (:foreground "gray85"))))
+ '(term ((t (:inherit default :background "#3B3333"))))
+ '(term-bold ((t (:background "#3B3333" :weight bold))))
+ '(term-underline ((t (:background "#3B3333" :underline t))))
  '(tide-hl-identifier-face ((t (:inherit highlight :inverse-video t))))
  '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
  '(window-divider ((t (:foreground "#211C1C"))))
