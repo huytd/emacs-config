@@ -406,7 +406,7 @@
 (setq left-fringe-width 20)
 
 (set-face-attribute 'default nil :font "Tamzen" :height 140)
-(setq-default line-spacing 0.15)
+(setq-default line-spacing 0.1)
 
 (add-hook 'markdown-mode-hook
           (lambda () (face-remap-add-relative 'default :family "Vixel")))
@@ -482,10 +482,18 @@
   :ensure t
   :config
   (treemacs-follow-mode t)
+  (treemacs-git-mode 'simple)
+  (treemacs-filewatch-mode nil)
+  (treemacs-fringe-indicator-mode nil)
   (setq treemacs-width 35
+        treemacs-max-git-entries 100
         treemacs-display-in-side-window t
+        treemacs-deferred-git-apply-delay 0.5
         treemacs-indentation-string (propertize " " 'face 'font-lock-comment-face)
-        treemacs-indentation 1)
+        treemacs-indentation 1
+        treemacs-file-follow-delay 0.2
+        treemacs-silent-filewatch t
+        treemacs-silent-refresh t)
   (add-hook 'treemacs-mode-hook #'hide-mode-line-mode)
   (add-hook 'treemacs-mode-hook (lambda ()
                                   (linum-mode -1)
@@ -498,7 +506,7 @@
       (let ((all-the-icons-default-adjust 0)
             (tab-width 1))
         ;; Root icon
-        (setq treemacs-icon-root-png (concat (all-the-icons-faicon "code-fork" :height 0.8 :v-adjust -0.2)  "\t"))
+        (setq treemacs-icon-root-png (concat (all-the-icons-octicon "repo" :height 0.8 :v-adjust -0.2)  " "))
         ;; File icons
         (setq treemacs-icon-open-png
               (concat
@@ -632,7 +640,13 @@
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   (setq lsp-ui-doc-enable nil
         lsp-ui-peek-enable nil
-        eldoc-echo-area-use-multiline-p nil))
+        eldoc-echo-area-use-multiline-p nil)
+  :config
+  (add-hook 'lsp-ui-imenu-mode-hook (lambda ()
+                                (linum-mode -1)
+                                (fringe-mode 0)
+                                (setq buffer-face-mode-face `(:background "#211C1C"))
+                                (buffer-face-mode 1))))
 
 ;; Company mode
 (use-package company
