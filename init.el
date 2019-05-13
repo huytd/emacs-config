@@ -247,8 +247,8 @@
                                     (interactive)
                                     (load-file "~/.emacs.d/init.el")))
 (global-set-key (kbd "C-c a t") 'multi-term)
-(global-set-key (kbd "C-c f t") 'neotree-project-dir)
-(global-set-key (kbd "C-c f r") 'neotree-refresh)
+(global-set-key (kbd "C-c f t") 'treemacs-select-window)
+(global-set-key (kbd "C-c f .") 'treemacs-add-and-display-current-project)
 (global-set-key (kbd "C-c C-c") 'lazy-highlight-cleanup)
 (global-set-key (kbd "C-c TAB") 'previous-buffer)
 (global-set-key (kbd "C-x p r") 'helm-show-kill-ring)
@@ -401,8 +401,8 @@
   (global-linum-mode 1))
 (when (fboundp 'blink-cursor-mode)
   (blink-cursor-mode -1))
-(add-to-list 'default-frame-alist '(height . 60))
-(add-to-list 'default-frame-alist '(width . 190))
+;;(add-to-list 'default-frame-alist '(height . 60))
+;;(add-to-list 'default-frame-alist '(width . 190))
 (setq left-fringe-width 20)
 
 (set-face-attribute 'default nil :font "Tamzen" :height 140)
@@ -477,33 +477,63 @@
 (use-package all-the-icons-dired :ensure t
   :hook (dired-mode . all-the-icons-dired-mode))
 
-;; NeoTree
-(use-package neotree
+;; Treemacs
+(use-package treemacs
   :ensure t
-  :init
-  (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
-  (setq neo-vc-integration nil)
-  (defun neotree-project-dir ()
-    "Open NeoTree using the git root."
-    (interactive)
-    (let ((project-dir (projectile-project-root))
-          (file-name (buffer-file-name)))
-      (neotree-toggle)
-      (if project-dir
-          (if (neo-global--window-exists-p)
-              (progn
-                (neotree-dir project-dir)
-                (neotree-find file-name)))
-        (message "Could not find git project root."))))
   :config
-  (define-key neotree-mode-map (kbd "C-c C-m") 'neotree-create-node)
-  (add-hook 'neotree-mode-hook #'hide-mode-line-mode)
-  (add-hook 'neotree-mode-hook (lambda ()
-                                 (linum-mode -1)
-                                 (setq left-fringe-width 0)
-                                 (setq right-fringe-width 0)
-                                 (setq buffer-face-mode-face `(:background "#211C1C"))
-                                 (buffer-face-mode 1))))
+  (treemacs-follow-mode t)
+  (setq treemacs-width 35
+        treemacs-display-in-side-window t
+        treemacs-indentation-string (propertize " " 'face 'font-lock-comment-face)
+        treemacs-indentation 1)
+  (add-hook 'treemacs-mode-hook #'hide-mode-line-mode)
+  (add-hook 'treemacs-mode-hook (lambda ()
+                                  (linum-mode -1)
+                                  (fringe-mode 0)
+                                  (setq buffer-face-mode-face `(:background "#211C1C"))
+                                  (buffer-face-mode 1)))
+  ;; Improve treemacs icons
+  (with-eval-after-load 'treemacs
+    (with-eval-after-load 'all-the-icons
+      (let ((all-the-icons-default-adjust 0)
+            (tab-width 1))
+        ;; Root icon
+        (setq treemacs-icon-root-png (concat (all-the-icons-faicon "code-fork" :height 0.8 :v-adjust -0.2)  "\t"))
+        ;; File icons
+        (setq treemacs-icon-open-png
+              (concat
+               (all-the-icons-octicon "chevron-down" :height 0.8 :v-adjust 0.1)
+               "\t"
+               (all-the-icons-octicon "file-directory" :v-adjust 0)
+               "\t")
+              treemacs-icon-closed-png
+              (concat
+               (all-the-icons-octicon "chevron-right" :height 0.8 :v-adjust 0.1 :face 'font-lock-doc-face)
+               "\t"
+               (all-the-icons-octicon "file-directory" :v-adjust 0 :face 'font-lock-doc-face)
+               "\t"))
+        ;; File type icons
+        (setq treemacs-icons-hash (make-hash-table :size 200 :test #'equal)
+              treemacs-icon-fallback (concat
+                                      "\t\t"
+                                      (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
+                                      "\t")
+              treemacs-icon-text treemacs-icon-fallback)
+
+        (dolist (item all-the-icons-icon-alist)
+          (let* ((extension (car item))
+                 (func (cadr item))
+                 (args (append (list (caddr item)) '(:v-adjust -0.05) (cdddr item)))
+                 (icon (apply func args))
+                 (key (s-replace-all '(("^" . "") ("\\" . "") ("$" . "") ("." . "")) extension))
+                 (value (concat "\t\t" icon "\t")))
+            (unless (ht-get treemacs-icons-hash (s-replace-regexp "\\?" "" key))
+              (ht-set! treemacs-icons-hash (s-replace-regexp "\\?" "" key) value))
+            (unless (ht-get treemacs-icons-hash (s-replace-regexp ".\\?" "" key))
+              (ht-set! treemacs-icons-hash (s-replace-regexp ".\\?" "" key) value))))))))
+
+(use-package treemacs-projectile
+  :ensure t)
 
 ;; Which Key
 (use-package which-key
@@ -529,7 +559,7 @@
 ;; Fancy titlebar for MacOS
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
-;;(add-to-list 'default-frame-alist '(internal-border-width . 10))
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
 (add-to-list 'default-frame-alist '(undecorated . t))
 (setq ns-use-proxy-icon  nil)
 (setq frame-title-format nil)
@@ -818,7 +848,6 @@
    '(helm-rg-preview-line-highlight ((t (:background "#46b866" :foreground "black"))))
    '(helm-selection ((t (:foreground "#f7cc62" :inverse-video t))))
    '(helm-source-header ((t (:foreground "white" :weight bold :height 1.0))))
-   '(neo-dir-link-face ((t (:foreground "gray85"))))
    '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
    '(window-divider ((t (:foreground "#211C1C"))))
    '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
@@ -869,8 +898,6 @@
  '(magit-dispatch-arguments nil)
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n32")))
  '(multi-term-program "/usr/local/bin/fish")
- '(neo-window-fixed-size nil)
- '(neo-window-width 35)
  '(newsticker-date-format "(%A)")
  '(newsticker-heading-format "%l
 %t %d %s")
@@ -889,7 +916,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (hide-mode-line swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (treemacs-projectile treemacs hide-mode-line swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(term-default-bg-color "#3B3333")
@@ -951,7 +978,6 @@
  '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
  '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
  '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
- '(neo-dir-link-face ((t (:foreground "gray85"))))
  '(term ((t (:inherit default :background "#3B3333"))))
  '(term-bold ((t (:background "#3B3333" :weight bold))))
  '(term-color-black ((t (:background "#211C1C" :foreground "#211C1C"))))
@@ -963,6 +989,7 @@
  '(term-color-yellow ((t (:background "#ffd866" :foreground "#ffd866"))))
  '(term-underline ((t (:background "#3B3333" :underline t))))
  '(tide-hl-identifier-face ((t (:inherit highlight :inverse-video t))))
+ '(treemacs-root-face ((t (:inherit font-lock-constant-face :underline t :weight bold :height 1.0))))
  '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
  '(window-divider ((t (:foreground "#211C1C"))))
  '(window-divider-first-pixel ((t (:foreground "#211C1C")))))
