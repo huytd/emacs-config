@@ -501,44 +501,44 @@
                                   (setq buffer-face-mode-face `(:background "#211C1C"))
                                   (buffer-face-mode 1)))
   ;; Improve treemacs icons
-  (with-eval-after-load 'treemacs
-    (with-eval-after-load 'all-the-icons
-      (let ((all-the-icons-default-adjust 0)
-            (tab-width 1))
-        ;; Root icon
-        (setq treemacs-icon-root-png (concat (all-the-icons-octicon "repo" :height 0.8 :v-adjust -0.2)  " "))
-        ;; File icons
-        (setq treemacs-icon-open-png
-              (concat
-               (all-the-icons-octicon "chevron-down" :height 0.8 :v-adjust 0.1)
-               "\t"
-               (all-the-icons-octicon "file-directory" :v-adjust 0)
-               "\t")
-              treemacs-icon-closed-png
-              (concat
-               (all-the-icons-octicon "chevron-right" :height 0.8 :v-adjust 0.1 :face 'font-lock-doc-face)
-               "\t"
-               (all-the-icons-octicon "file-directory" :v-adjust 0 :face 'font-lock-doc-face)
-               "\t"))
-        ;; File type icons
-        (setq treemacs-icons-hash (make-hash-table :size 200 :test #'equal)
-              treemacs-icon-fallback (concat
-                                      "\t\t"
-                                      (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
-                                      "\t")
-              treemacs-icon-text treemacs-icon-fallback)
-
-        (dolist (item all-the-icons-icon-alist)
-          (let* ((extension (car item))
-                 (func (cadr item))
-                 (args (append (list (caddr item)) '(:v-adjust -0.05) (cdddr item)))
-                 (icon (apply func args))
-                 (key (s-replace-all '(("^" . "") ("\\" . "") ("$" . "") ("." . "")) extension))
-                 (value (concat "\t\t" icon "\t")))
-            (unless (ht-get treemacs-icons-hash (s-replace-regexp "\\?" "" key))
-              (ht-set! treemacs-icons-hash (s-replace-regexp "\\?" "" key) value))
-            (unless (ht-get treemacs-icons-hash (s-replace-regexp ".\\?" "" key))
-              (ht-set! treemacs-icons-hash (s-replace-regexp ".\\?" "" key) value))))))))
+    (with-eval-after-load 'treemacs
+      (with-eval-after-load 'all-the-icons
+        (let ((all-the-icons-default-adjust 0)
+              (tab-width 1))
+          ;; Root icon
+          (setq treemacs-icon-root-png (concat (all-the-icons-octicon "repo" :height 0.8 :v-adjust -0.2)  " "))
+          ;; File icons
+          (setq treemacs-icon-open-png
+                (concat
+                 (all-the-icons-octicon "chevron-down" :height 0.8 :v-adjust 0.1)
+                 "\t"
+                 (all-the-icons-octicon "file-directory" :v-adjust 0)
+                 "\t")
+                treemacs-icon-closed-png
+                (concat
+                 (all-the-icons-octicon "chevron-right" :height 0.8 :v-adjust 0.1 :face 'font-lock-doc-face)
+                 "\t"
+                 (all-the-icons-octicon "file-directory" :v-adjust 0 :face 'font-lock-doc-face)
+                 "\t"))
+          ;; File type icons
+          (setq treemacs-icons-hash (make-hash-table :size 200 :test #'equal)
+                treemacs-icon-fallback (concat
+                                        "\t\t"
+                                        (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
+                                        "\t")
+                treemacs-icon-text treemacs-icon-fallback)
+   
+          (dolist (item all-the-icons-icon-alist)
+            (let* ((extension (car item))
+                   (func (cadr item))
+                   (args (append (list (caddr item)) '(:v-adjust -0.05) (cdddr item)))
+                   (icon (apply func args))
+                   (key (s-replace-all '(("^" . "") ("\\" . "") ("$" . "") ("." . "")) extension))
+                   (value (concat "\t\t" icon "\t")))
+              (unless (ht-get treemacs-icons-hash (s-replace-regexp "\\?" "" key))
+                (ht-set! treemacs-icons-hash (s-replace-regexp "\\?" "" key) value))
+              (unless (ht-get treemacs-icons-hash (s-replace-regexp ".\\?" "" key))
+                (ht-set! treemacs-icons-hash (s-replace-regexp ".\\?" "" key) value))))))))
 
 (use-package treemacs-projectile
   :ensure t)
@@ -590,6 +590,15 @@
 (use-package company-arduino
   :after (arduino-mode company)
   :ensure t)
+
+;; Prettier
+(use-package prettier-js
+  :ensure t
+  :config
+  (add-hook 'typescript-mode-hook (lambda ()
+                                   (if (and (not (string= (projectile-project-name) "frontend"))
+                                            (not (string= (projectile-project-name) "roboshop")))
+                                       (prettier-js-mode 1)))))
 
 ;; JS TS and Web
 (use-package tide
@@ -646,7 +655,33 @@
                                 (linum-mode -1)
                                 (fringe-mode 0)
                                 (setq buffer-face-mode-face `(:background "#211C1C"))
-                                (buffer-face-mode 1))))
+                                (buffer-face-mode 1)))
+  ;; Custom bar
+  (defun lsp-ui-imenu--get-bar (bars index depth for-title is-last)
+    (cond
+     ((>= index lsp-ui-imenu--max-bars)
+      ;; Exceeding maximum bars
+      "   ")
+     ((not (aref bars index))
+      ;; No bar for this level
+      "   ")
+     ((and (= depth 1) (not for-title))
+      ;; For the first level, the title is rendered differently, so leaf items are
+      ;; decorated with the full height bar regardless if it's the last item or
+      ;; not.
+      " │ ")
+     ((< (1+ index) depth)
+      ;; Full height bar for levels other than the rightmost one.
+      " │ ")
+     (is-last
+      ;; The rightmost bar for the last item.
+      " └ " )
+     (for-title
+      ;; The rightmost bar for the title items other than the last one.
+      " ├ ")
+     (t
+      ;; The rightmost bar for the leaf items other than the last one.
+      " │ "))))
 
 ;; Company mode
 (use-package company
@@ -895,7 +930,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t t)
+ '(helm-M-x-fuzzy-match t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -931,7 +966,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (treemacs-projectile treemacs hide-mode-line swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (prettier-js treemacs-projectile treemacs hide-mode-line swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(term-default-bg-color "#3B3333")
