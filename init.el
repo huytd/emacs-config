@@ -50,6 +50,7 @@
 ;; PACKAGES INSTALL
 
 ;; Dashboard
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 (use-package page-break-lines :ensure t)
 (use-package dashboard
     :ensure t
@@ -909,7 +910,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t t)
+ '(helm-M-x-fuzzy-match t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -1009,6 +1010,7 @@
  '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
  '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
  '(org-block ((t (:inherit shadow :background "#3B3333" :foreground "#FFFFFF"))))
+ '(page-break-lines ((t (:inherit font-lock-comment-face :foreground "#2C2525" :slant normal :weight normal :height 140))))
  '(term ((t (:inherit default :background "#3B3333"))))
  '(term-bold ((t (:background "#3B3333" :weight bold))))
  '(term-color-black ((t (:background "#211C1C" :foreground "#211C1C"))))
