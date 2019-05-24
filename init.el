@@ -49,6 +49,23 @@
 
 ;; PACKAGES INSTALL
 
+;; Dashboard
+(use-package page-break-lines :ensure t)
+(use-package dashboard
+    :ensure t
+    :diminish dashboard-mode
+    :config
+    (setq dashboard-center-content t)
+    (setq dashboard-show-shortcuts nil)
+    (setq dashboard-startup-banner 2)
+    (setq dashboard-items '((recents  . 5)
+                            (projects . 5)
+                            (bookmarks . 5)))
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
+    (setq dashboard-set-init-info t)
+    (dashboard-setup-startup-hook))
+
 ;; Ranger
 (use-package ranger
   :ensure t
@@ -896,7 +913,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t)
+ '(helm-M-x-fuzzy-match t t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -927,7 +944,7 @@
      ("slashdot" "http://rss.slashdot.org/Slashdot/slashdot" nil 3600)
      ("Wired News" "https://www.wired.com/feed/rss"))))
  '(org-agenda-files nil)
- '(org-agenda-window-setup (quote only-window) t)
+ '(org-agenda-window-setup (quote only-window))
  '(org-directory "~/notes/")
  '(org-journal-list-create-list-buffer nil)
  '(org-startup-folded nil)
