@@ -120,6 +120,8 @@
   (push '("[ ]" . "☐") prettify-symbols-alist)
   (push '("[X]" . "☑" ) prettify-symbols-alist)
   (push '("[-]" . "❍" ) prettify-symbols-alist)
+  (push '("#+BEGIN_SRC" . "⌜" ) prettify-symbols-alist)
+  (push '("#+END_SRC" . "⌞" ) prettify-symbols-alist)
   (prettify-symbols-mode))
 
 (defun kill-other-buffers ()
@@ -990,7 +992,7 @@
  '(org-journal-list-create-list-buffer nil)
  '(package-selected-packages
    (quote
-    (prettier-js treemacs-projectile treemacs hide-mode-line swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (color-theme-buffer-local prettier-js treemacs-projectile treemacs hide-mode-line swift-mode ranger shrink-path highlight-indent-guides dap-mode ace-jump lsp-haskell indium multiple-cursors expand-region org-capture-pop-frame purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize go-eldoc go-complete go-stacktracer go-mode helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(term-default-bg-color "#3B3333")
@@ -1052,6 +1054,7 @@
  '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
  '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
  '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
+ '(org-block ((t (:inherit shadow :background "#3B3333" :foreground "#FFFFFF"))))
  '(term ((t (:inherit default :background "#3B3333"))))
  '(term-bold ((t (:background "#3B3333" :weight bold))))
  '(term-color-black ((t (:background "#211C1C" :foreground "#211C1C"))))
