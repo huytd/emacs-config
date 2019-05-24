@@ -7,10 +7,11 @@
             ;; Movement
             (define-key map (kbd "C-j") 'next-line)
             (define-key map (kbd "C-k") 'previous-line)
-            (define-key map (kbd "M-k") 'backward-paragraph)
-            (define-key map (kbd "M-j") 'forward-paragraph)
-            (define-key map (kbd "M-p") 'backward-paragraph)
-            (define-key map (kbd "M-n") 'forward-paragraph)
+            (define-key map (kbd "s-p") 'backward-paragraph)
+            (define-key map (kbd "s-n") 'forward-paragraph)
+            (define-key map (kbd "s-w") 'kill-ring-save)
+            (define-key map (kbd "s-f") 'forward-word)
+            (define-key map (kbd "s-b") 'backward-word)
             ;; Window Navigation
             (define-key map (kbd "C-c C-n") 'windmove-down)
             (define-key map (kbd "C-c C-p") 'windmove-up)
