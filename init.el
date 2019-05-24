@@ -173,10 +173,6 @@
 ;; Multiple Cursors
 (use-package multiple-cursors :ensure t)
 
-;; Splash Screen
-(setq inhibit-startup-screen t)
-(setq initial-scratch-message ";; Happy Hacking")
-
 ;; Golden ratio
 ;;(use-package golden-ratio
 ;;  :ensure t
