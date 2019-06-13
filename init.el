@@ -1,4 +1,3 @@
-(setq gc-cons-threshold 100000000)
 ;; Package configs
 (require 'package)
 (setq package-enable-at-startup nil)
@@ -47,6 +46,53 @@
   (dolist (direction '("right" "left"))
     (global-set-key (read-kbd-macro (concat "<" multiple "wheel-" direction ">")) 'ignore)))
 
+;; Appointment Setup
+(require 'appt)
+(setq appt-time-msg-list nil
+      appt-display-interval '5
+      appt-message-warning-time '10
+      appt-display-mode-line t
+      appt-display-format 'window)
+
+; Use appointment data from org-mode
+(defun sync-org-agenda-to-appt ()
+  (interactive)
+  (setq appt-time-msg-list nil)
+  (org-agenda-to-appt))
+(sync-org-agenda-to-appt)
+(add-hook 'after-save-hook
+          '(lambda ()
+             (if (string= (buffer-name) "project.org")
+                 (sync-org-agenda-to-appt))))
+
+(appt-activate 1)
+
+(defvar terminal-notifier-path
+  "/usr/local/bin/terminal-notifier")
+
+(defun user-appt-send-notification (title msg)
+  (shell-command (concat terminal-notifier-path
+                         " -message " msg
+                         " -title " title
+                         " -appIcon /Applications/Calendar.app/Contents/Resources/App-empty.icns")))
+
+(defun user-appt-display (min-to-app new-time msg)
+  (user-appt-send-notification
+   (format "'🔥 In %s minutes'" min-to-app)
+   (format "'%s'" msg)))
+
+(setq appt-disp-window-function (function user-appt-display))
+
+(setq org-agenda-window-setup 'current-window)
+
+(setq org-agenda-custom-commands
+      '(("c" "Custom agenda view"
+         ((agenda "")))))
+
+(defun show-custom-agenda-view ()
+  (interactive)
+  (org-agenda nil "c"))
+
 ;; PACKAGES INSTALL
 
 ;; Dashboard
@@ -77,14 +123,6 @@
   :init
   (ranger-override-dired-mode 1))
 
-;; Highlight Indent (like Sublime)
-(use-package highlight-indent-guides
-  :ensure t
-  :config
-  (setq highlight-indent-guides-method 'character)
-  (setq highlight-indent-guides-character ?\│)
-  :hook ((prog-mode . highlight-indent-guides-mode)))
-
 ;; Smart Parens
 (use-package smartparens
   :ensure t
@@ -106,6 +144,14 @@
 
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 (setq-default fill-column 70)
+;; Strikethrough
+(defface org-checkbox-done-text
+  '((t (:foreground "#71696A" :strike-through t)))
+  "Face for the text part of a checked org-mode checkbox.")
+(font-lock-add-keywords
+ 'org-mode
+ `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)" 1 'org-checkbox-done-text prepend))
+ 'append)
 
 (defun enhance-ui-for-orgmode ()
   "Enhance UI for orgmode."
@@ -113,26 +159,21 @@
   (org-autolist-mode 1)
   (toggle-truncate-lines)
   (linum-mode -1)
-  (set-face-attribute 'org-level-1 nil :height 1.15 :background nil)
-  (set-face-attribute 'org-level-2 nil :height 1.1 :background nil)
-  (dolist (face '(org-level-3 org-level-4 org-level-5))
-    (set-face-attribute face nil :weight 'semi-bold :height 1.0))
-  (face-remap-add-relative 'default :family "iA Writer Duospace" :height 120)
-  ;; Strikethrough
-  (defface org-checkbox-done-text
-    '((t (:foreground "#71696A" :strike-through t)))
-    "Face for the text part of a checked org-mode checkbox.")
-  (font-lock-add-keywords
-   'org-mode
-   `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)" 1 'org-checkbox-done-text prepend))
-   'append)
   ;; Beautify Org Checkbox Symbol
   (push '("[ ]" . "☐") prettify-symbols-alist)
   (push '("[X]" . "☑" ) prettify-symbols-alist)
   (push '("[-]" . "❍" ) prettify-symbols-alist)
   (push '("#+BEGIN_SRC" . "⌜" ) prettify-symbols-alist)
   (push '("#+END_SRC" . "⌞" ) prettify-symbols-alist)
-  (prettify-symbols-mode))
+  (push '("TODO" . "☐" ) prettify-symbols-alist)
+  (push '("WORK" . "⚑" ) prettify-symbols-alist)
+  (push '("DONE" . "☑" ) prettify-symbols-alist)
+  (prettify-symbols-mode)
+  (set-face-attribute 'org-level-1 nil :height 1.15 :background nil :weight 'bold)
+  (set-face-attribute 'org-level-2 nil :height 1.1 :background nil :weight 'semi-bold)
+  (dolist (face '(org-level-3 org-level-4 org-level-5))
+    (set-face-attribute face nil :weight 'normal :height 1.0))
+  (face-remap-add-relative 'default :family "iA Writer Duospace" :height 120))
 
 (defun kill-other-buffers ()
   "Kill all other buffers."
@@ -260,6 +301,7 @@
 (global-set-key (kbd "C-,") 'toggle-kbd-macro-recording-on)
 (global-set-key (kbd "C-.") 'call-last-kbd-macro)
 ;; Functions
+(global-set-key (kbd "C-c a g") 'show-custom-agenda-view)
 (global-set-key (kbd "C-c f f") 'json-pretty-print-buffer)
 (global-set-key (kbd "C-v") 'er/expand-region)
 (global-set-key (kbd "C-c m m") 'mc/mark-all-dwim)
@@ -372,11 +414,10 @@
 (setq org-hide-emphasis-markers t)
 (setq org-html-validation-link nil)
 (setq org-todo-keywords
-      '((sequence "TODO" "WORKING" "HOLD" "|" "DONE")))
+      '((sequence "TODO(t!)" "WORK(w!)" "|" "DONE(d!)")))
 (setq org-todo-keyword-faces
       '(("TODO"    . "#eb4d4b")
-        ("WORKING" . "#f0932b")
-        ("HOLD"    . "#eb4d4b")
+        ("WORK"    . "#eb4d4b")
         ("DONE"    . "#6ab04c")))
 
 ;; UI configurations
@@ -557,7 +598,7 @@
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
-(add-to-list 'default-frame-alist '(undecorated . t))
+;;(add-to-list 'default-frame-alist '(undecorated . t))
 (setq ns-use-proxy-icon  nil)
 (setq frame-title-format nil)
 (setq mac-allow-anti-aliasing t)
@@ -594,6 +635,7 @@
   :hook ((typescript-mode . tide-setup)
          (typescript-mode . tide-hl-identifier-mode)
          (typescript-mode . flycheck-mode)
+         (typescript-mode . lsp-ui-mode)
          (before-save . tide-formater-before-save))
   :config
   (define-key typescript-mode-map (kbd "C-c r") 'tide-refactor))
@@ -742,7 +784,7 @@
 (defun calculate-icons-width ()
   (let ((left-icon-length 2)
         (right-icon-length 2))
-    (+ left-icon-length (pcase flycheck-last-status-change
+    (+ left-icon-length right-icon-length (pcase flycheck-last-status-change
                           (`finished (if flycheck-current-errors
                                          (let ((count (let-alist (flycheck-count-errors flycheck-current-errors)
                                                         (+ (or .warning 0) (or .error 0)))))
@@ -785,6 +827,11 @@
                 'local-map (make-mode-line-mouse-map
                             'mouse-1 (lambda () (interactive) (flycheck-list-errors))))))
 
+(setq display-time-string-forms
+       '((propertize (concat 24-hours ":" minutes)
+ 		                 'face 'egoge-display-time)))
+(display-time-mode 1)
+
 (setq-default mode-line-format
               '((:eval (simple-mode-line-render
                         ;; left
@@ -806,7 +853,7 @@
                         ;; right
                         (format-mode-line (list
                                            '(:eval
-                                             (format "%s %s %s"
+                                             (format "%s %s %s %s"
                                                      mode-name
                                                      (if vc-mode
                                                          (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
@@ -816,6 +863,7 @@
                                                                 (icon (propertize (insert-icon 'all-the-icons-octicon "git-branch" -0.03))))
                                                            (format "%s %s" icon (substring noback 2)))
                                                        "")
+                                                     (format "%s %s" (insert-icon 'all-the-icons-faicon "clock-o") display-time-string)
                                                      (custom-modeline-flycheck-status)))))))))
 
 ;; Quickrun
@@ -899,6 +947,7 @@
  '(anzu-cons-mode-line-p nil)
  '(company-idle-delay 0.1)
  '(company-require-match (quote never))
+ '(display-time-mode t)
  '(flycheck-disabled-checkers (quote (javascript-jshint)))
  '(font-lock-maximum-decoration t)
  '(global-company-mode t)
@@ -910,7 +959,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t)
+ '(helm-M-x-fuzzy-match t t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -940,17 +989,20 @@
     (("LWN (Linux Weekly News)" "https://lwn.net/headlines/rss")
      ("slashdot" "http://rss.slashdot.org/Slashdot/slashdot" nil 3600)
      ("Wired News" "https://www.wired.com/feed/rss"))))
- '(org-agenda-files nil)
- '(org-agenda-window-setup (quote only-window))
+ '(org-agenda-files
+   (quote
+    ("~/notes/scratch.org" "~/code/play/streamrss/project.org" "~/code/play/stockonwatch/project.org")))
  '(org-directory "~/notes/")
  '(org-journal-list-create-list-buffer nil)
+ '(org-log-into-drawer t)
  '(org-startup-folded nil)
  '(package-selected-packages
    (quote
-    (prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path highlight-indent-guides ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(term-default-bg-color "#3B3333")
+ '(timeclock-mode-line-display t)
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map
    (list
