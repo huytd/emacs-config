@@ -200,8 +200,6 @@
                             (linum-mode -1)
                             (setq left-fringe-width 0)
                             (setq right-fringe-width 0)
-                            (setq buffer-face-mode-face `(:background "#3B3333"))
-                            (buffer-face-mode 1)
                             (local-unset-key (kbd "C-r"))))
 
 (use-package multi-term
@@ -435,8 +433,8 @@
   (blink-cursor-mode -1))
 (setq left-fringe-width 20)
 
-(set-face-attribute 'default nil :font "Tamzen" :height 140)
-(setq-default line-spacing 0.1)
+(add-to-list 'default-frame-alist '(font . "Fira Code-12:antialias=true:hinting=true"))
+(setq-default line-spacing 1)
 
 (add-hook 'markdown-mode-hook
           (lambda () (face-remap-add-relative 'default :family "iA Writer Duospace" :height 120)))
@@ -527,9 +525,7 @@
   (add-hook 'treemacs-mode-hook #'hide-mode-line-mode)
   (add-hook 'treemacs-mode-hook (lambda ()
                                   (linum-mode -1)
-                                  (fringe-mode 0)
-                                  (setq buffer-face-mode-face `(:background "#211C1C"))
-                                  (buffer-face-mode 1)))
+                                  (fringe-mode 0)))
   ;; Improve treemacs icons
   (with-eval-after-load 'treemacs
     (with-eval-after-load 'all-the-icons
@@ -679,9 +675,7 @@
   :config
   (add-hook 'lsp-ui-imenu-mode-hook (lambda ()
                                       (linum-mode -1)
-                                      (fringe-mode 0)
-                                      (setq buffer-face-mode-face `(:background "#211C1C"))
-                                      (buffer-face-mode 1)))
+                                      (fringe-mode 0)))
   ;; Custom bar
   (defun lsp-ui-imenu--get-bar (bars index depth for-title is-last)
     (cond
@@ -910,31 +904,13 @@
     (error "helm-ag not available")))
 
 ;; Theme
+(use-package doom-themes :ensure t)
 (add-to-list 'custom-theme-load-path "/Users/huy/.emacs.d/custom-themes/")
 
 (defun set-dark-theme ()
   "Set the dark theme with some customization if needed."
   (interactive)
-  (load-theme 'ayu t)
-  (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :background "#2C2525" :foreground "#EAEDF3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight thin :width normal))))
-   '(company-template-field ((t (:background "#f7cc62" :foreground "black"))))
-   '(company-tooltip ((t (:background "#f7cc62" :foreground "black"))))
-   '(company-tooltip-selection ((t (:background "#f58c31"))))
-   '(helm-candidate-number ((t (:background "#f7cc62" :foreground "black"))))
-   '(helm-ff-pipe ((t (:background "black" :foreground "#f7cc62"))))
-   '(helm-ff-prefix ((t (:background "#f7cc62" :foreground "black"))))
-   '(helm-header-line-left-margin ((t (:background "#f7cc62" :foreground "black"))))
-   '(helm-match ((t (:foreground "white" :inverse-video nil))))
-   '(helm-rg-preview-line-highlight ((t (:background "#46b866" :foreground "black"))))
-   '(helm-selection ((t (:foreground "#f7cc62" :inverse-video t))))
-   '(helm-source-header ((t (:foreground "white" :weight bold :height 1.0))))
-   '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
-   '(window-divider ((t (:foreground "#211C1C"))))
-   '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
-   '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
-   '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
-   '(window-divider-first-pixel ((t (:foreground "#211C1C"))))))
+  (load-theme 'doom-tomorrow-day t))
 
 (set-dark-theme)
 
@@ -959,7 +935,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t t)
+ '(helm-M-x-fuzzy-match t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -991,7 +967,7 @@
      ("Wired News" "https://www.wired.com/feed/rss"))))
  '(org-agenda-files
    (quote
-    ("~/notes/scratch.org" "~/code/play/streamrss/project.org" "~/code/play/stockonwatch/project.org")))
+    ("~/notes/scratch.org" "~/code/play/stockonwatch/project.org")))
  '(org-directory "~/notes/")
  '(org-journal-list-create-list-buffer nil)
  '(org-log-into-drawer t)
@@ -1030,39 +1006,20 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#2C2525" :foreground "#EAEDF3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight thin :width normal))))
  '(bold ((t (:foreground "orange1" :weight extra-bold))))
- '(company-template-field ((t (:background "#f7cc62" :foreground "black"))))
- '(company-tooltip ((t (:background "#f7cc62" :foreground "black"))))
- '(company-tooltip-selection ((t (:background "#f58c31"))))
  '(fixed-pitch ((t (:family "CodingFontTobi"))))
  '(fixed-pitch-serif ((t (:family "CodingFontTobi"))))
- '(font-lock-comment-delimiter-face ((t (:foreground "#71696A" :slant italic))))
- '(font-lock-comment-face ((t (:foreground "#71696A" :slant italic))))
  '(fringe ((t (:background nil))))
- '(helm-candidate-number ((t (:background "#f7cc62" :foreground "black"))))
- '(helm-ff-directory ((t (:foreground "OrangeRed1"))))
- '(helm-ff-executable ((t (:inherit font-lock-string-face))))
- '(helm-ff-pipe ((t (:background "black" :foreground "#f7cc62"))))
- '(helm-ff-prefix ((t (:background "#f7cc62" :foreground "black"))))
  '(helm-grep-finish ((t (:inherit font-lock-string-face))))
- '(helm-header-line-left-margin ((t (:background "#f7cc62" :foreground "black"))))
  '(helm-locate-finish ((t (:inherit font-lock-string-face))))
  '(helm-match ((t (:foreground "white" :inverse-video nil))))
- '(helm-moccur-buffer ((t (:inherit font-lock-string-face :underline t))))
  '(helm-prefarg ((t (:inherit font-lock-string-face))))
  '(helm-rg-active-arg-face ((t (:inherit font-lock-string-face))))
  '(helm-rg-file-match-face ((t (:inherit font-lock-string-face :underline t))))
- '(helm-rg-preview-line-highlight ((t (:background "#46b866" :foreground "black"))))
- '(helm-selection ((t (:foreground "#f7cc62" :inverse-video t))))
- '(helm-source-header ((t (:foreground "white" :weight bold :height 1.0))))
+ '(helm-selection ((t (:inherit bold :background "#000000" :inverse-video t))))
+ '(helm-source-header ((t (:weight bold :height 1.0))))
  '(helm-visible-mark ((t nil)))
  '(js2-function-param ((t (:foreground "#F18D73"))))
- '(linum ((t (:inherit default :background nil :foreground "#5A5353" :strike-through nil :underline nil :slant normal :weight normal))))
- '(mode-line ((t (:background "#3B3333" :foreground "#EAEDF3" :box (:line-width 1 :color "#3B3333" :style unspecified) :overline "#3B3333" :underline nil))))
- '(mode-line-inactive ((t (:background "#3B3333" :foreground "#71696A" :box nil))))
- '(org-block ((t (:inherit shadow :background "#3B3333" :foreground "#FFFFFF"))))
- '(page-break-lines ((t (:inherit font-lock-comment-face :foreground "#2C2525" :slant normal :weight normal :height 140))))
  '(term ((t (:inherit default :background "#3B3333"))))
  '(term-bold ((t (:background "#3B3333" :weight bold))))
  '(term-color-black ((t (:background "#211C1C" :foreground "#211C1C"))))
@@ -1074,8 +1031,5 @@
  '(term-color-yellow ((t (:background "#ffd866" :foreground "#ffd866"))))
  '(term-underline ((t (:background "#3B3333" :underline t))))
  '(tide-hl-identifier-face ((t (:inherit highlight :inverse-video t))))
- '(treemacs-root-face ((t (:inherit font-lock-constant-face :underline t :weight bold :height 1.0))))
- '(vertical-border ((t (:background "#161616" :foreground "#211C1C"))))
- '(window-divider ((t (:foreground "#211C1C"))))
- '(window-divider-first-pixel ((t (:foreground "#211C1C")))))
+ '(treemacs-root-face ((t (:inherit font-lock-constant-face :underline t :weight bold :height 1.0)))))
 (put 'narrow-to-region 'disabled nil)
