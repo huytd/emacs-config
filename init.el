@@ -95,6 +95,9 @@
 
 ;; PACKAGES INSTALL
 
+;; Yasnippet
+(use-package yasnippet :ensure t)
+
 ;; Dashboard
 (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 (use-package page-break-lines :ensure t)
@@ -105,8 +108,8 @@
     (setq dashboard-center-content t)
     (setq dashboard-show-shortcuts nil)
     (setq dashboard-startup-banner 2)
-    (setq dashboard-items '((recents  . 5)
-                            (projects . 5)
+    (setq dashboard-items '((recents  . 10)
+                            (projects . 10)
                             (bookmarks . 5)))
     (setq dashboard-set-heading-icons t)
     (setq dashboard-set-file-icons t)
@@ -172,8 +175,7 @@
   (set-face-attribute 'org-level-1 nil :height 1.15 :background nil :weight 'bold)
   (set-face-attribute 'org-level-2 nil :height 1.1 :background nil :weight 'semi-bold)
   (dolist (face '(org-level-3 org-level-4 org-level-5))
-    (set-face-attribute face nil :weight 'normal :height 1.0))
-  (face-remap-add-relative 'default :family "iA Writer Duospace" :height 120))
+    (set-face-attribute face nil :weight 'normal :height 1.0)))
 
 (defun kill-other-buffers ()
   "Kill all other buffers."
@@ -270,10 +272,12 @@
 (global-set-key (kbd "C-x SPC") 'cua-rectangle-mark-mode)
 (global-set-key (kbd "C-c l") 'join-line)
 (global-set-key (kbd "C-c n") (lambda () (interactive) (join-line -1)))
+(global-set-key (kbd "s-o") 'ace-window)
 (global-set-key (kbd "s-s") 'ace-jump-mode)
 (global-set-key (kbd "s-l") 'ace-jump-line-mode)
 (global-set-key (kbd "s-+") 'text-scale-increase)
 (global-set-key (kbd "s-_") 'text-scale-decrease)
+(global-set-key (kbd "s-<backspace>") 'backward-kill-word)
 ;; Searching
 (global-set-key (kbd "C-c s") 'helm-projectile-ag)
 (global-set-key (kbd "C-c ;") 'helm-projectile-ag)
@@ -337,7 +341,7 @@
 (global-set-key (kbd "C-c /") 'split-window-right)
 (global-set-key (kbd "C-c \\") 'split-window-below)
 (global-set-key (kbd "C-x w n") 'make-frame)
-(global-set-key (kbd "C-x w k") 'delete-frame)
+(global-set-key (kbd "C-x w k") (lambda () (interactive) (projectile-kill-buffers) (delete-frame)))
 (global-set-key (kbd "C-c k") 'delete-window)
 (global-set-key (kbd "C-x w .") 'kill-buffer-and-window)
 (global-set-key (kbd "C-s-<down>") (lambda () (interactive) (shrink-window 10)))
@@ -433,11 +437,11 @@
   (blink-cursor-mode -1))
 (setq left-fringe-width 20)
 
-(add-to-list 'default-frame-alist '(font . "Fira Code-12:antialias=true:hinting=true"))
-(setq-default line-spacing 1)
+(add-to-list 'default-frame-alist '(font . "IBM Plex Mono-14:antialias=true:hinting=true"))
+(add-to-list 'default-frame-alist '(height . 35))
+(add-to-list 'default-frame-alist '(width . 120))
 
-(add-hook 'markdown-mode-hook
-          (lambda () (face-remap-add-relative 'default :family "iA Writer Duospace" :height 120)))
+(setq-default line-spacing 0.2)
 
 ;; Anzu for search matching
 (use-package anzu
@@ -593,8 +597,8 @@
 ;; Fancy titlebar for MacOS
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
 ;;(add-to-list 'default-frame-alist '(undecorated . t))
+(add-to-list 'default-frame-alist '(internal-border-width . 10))
 (setq ns-use-proxy-icon  nil)
 (setq frame-title-format nil)
 (setq mac-allow-anti-aliasing t)
@@ -663,15 +667,27 @@
 (use-package flycheck :ensure t)
 
 ;; LSP
-(use-package lsp-mode :ensure t)
+(use-package lsp-mode :ensure t
+  :config
+  (add-hook 'rust-mode-hook #'lsp))
 
 (use-package lsp-ui
   :ensure t
   :init
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-  (setq lsp-ui-doc-enable nil
-        lsp-ui-peek-enable nil
-        eldoc-echo-area-use-multiline-p nil)
+  (setq lsp-ui-doc-enable t
+        lsp-ui-doc-use-childframe t
+        lsp-ui-doc-delay 0.7
+        lsp-ui-doc-max-width 40
+        lsp-ui-doc-position 'top
+        lsp-ui-doc-include-signature t
+        lsp-ui-sideline-enable nil
+        lsp-ui-flycheck-enable t
+        lsp-ui-flycheck-list-position 'right
+        lsp-ui-flycheck-live-reporting t
+        lsp-ui-peek-enable t
+        lsp-ui-peek-list-width 60
+        lsp-ui-peek-peek-height 25)
   :config
   (add-hook 'lsp-ui-imenu-mode-hook (lambda ()
                                       (linum-mode -1)
@@ -734,13 +750,22 @@
     (let ((completion-at-point-functions completion-at-point-functions-saved))
       (company-complete-common))))
 
+(use-package company-lsp
+  :ensure t
+  :requires company
+  :config
+  (push 'company-lsp company-backends)
+  ;; Disable client-side cache because the LSP server does a better job.
+  (setq company-transformers nil
+        company-lsp-async t
+        company-lsp-cache-candidates nil))
+
 ;; Rust
 (use-package rust-mode
   :ensure t
   :init
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
-  :hook ((rust-mode . lsp-mode)
-         (rust-mode . flycheck-mode)))
+  :hook ((rust-mode . flycheck-mode)))
 
 (use-package cargo
   :ensure t
@@ -910,7 +935,7 @@
 (defun set-dark-theme ()
   "Set the dark theme with some customization if needed."
   (interactive)
-  (load-theme 'doom-tomorrow-day t))
+  (load-theme 'doom-one-light t))
 
 (set-dark-theme)
 
@@ -923,6 +948,9 @@
  '(anzu-cons-mode-line-p nil)
  '(company-idle-delay 0.1)
  '(company-require-match (quote never))
+ '(custom-safe-themes
+   (quote
+    ("49ec957b508c7d64708b40b0273697a84d3fee4f15dd9fc4a9588016adee3dad" "6b2636879127bf6124ce541b1b2824800afc49c6ccd65439d6eb987dbf200c36" default)))
  '(display-time-mode t)
  '(flycheck-disabled-checkers (quote (javascript-jshint)))
  '(font-lock-maximum-decoration t)
@@ -974,7 +1002,7 @@
  '(org-startup-folded nil)
  '(package-selected-packages
    (quote
-    (org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(term-default-bg-color "#3B3333")
@@ -1006,10 +1034,17 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ace-jump-face-foreground ((t (:foreground "red" :weight semi-bold))))
+ '(aw-leading-char-face ((t (:foreground "red" :inverse-video t :weight bold :height 1.1))))
  '(bold ((t (:foreground "orange1" :weight extra-bold))))
- '(fixed-pitch ((t (:family "CodingFontTobi"))))
- '(fixed-pitch-serif ((t (:family "CodingFontTobi"))))
+ '(centaur-active-bar-face ((t (:inherit minibuffer-prompt))))
+ '(centaur-tabs-default ((t (:inherit tabbar-default :background "#E7E7E7"))))
+ '(centaur-tabs-selected ((t (:inherit tabbar-selected))))
+ '(centaur-tabs-selected-modified ((t (:inherit tabbar-selected-modified))))
+ '(centaur-tabs-unselected ((t (:inherit tabbar-unselected))))
+ '(centaur-tabs-unselected-modified ((t (:inherit tabbar-unselected-modified))))
  '(fringe ((t (:background nil))))
+ '(frog-menu-posframe-background-face ((t (:inherit default :background "#efefef"))))
  '(helm-grep-finish ((t (:inherit font-lock-string-face))))
  '(helm-locate-finish ((t (:inherit font-lock-string-face))))
  '(helm-match ((t (:foreground "white" :inverse-video nil))))
@@ -1020,7 +1055,11 @@
  '(helm-source-header ((t (:weight bold :height 1.0))))
  '(helm-visible-mark ((t nil)))
  '(js2-function-param ((t (:foreground "#F18D73"))))
- '(term ((t (:inherit default :background "#3B3333"))))
+ '(lsp-face-highlight-textual ((t (:background "#4271ae" :foreground "#FFFFFF" :weight normal))))
+ '(lsp-ui-doc-background ((t (:background "#f8f8f8"))))
+ '(markdown-code-face ((t (:background "#eeeeee"))))
+ '(mode-line ((t (:background "#F0F0F0" :box (:line-width 2 :color "#F0F0F0")))))
+ '(term ((t (:inherit default :foreground "#383a42"))))
  '(term-bold ((t (:background "#3B3333" :weight bold))))
  '(term-color-black ((t (:background "#211C1C" :foreground "#211C1C"))))
  '(term-color-blue ((t (:background "#a4c1ef" :foreground "#a4c1ef"))))
