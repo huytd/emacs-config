@@ -158,7 +158,6 @@
 
 (defun enhance-ui-for-orgmode ()
   "Enhance UI for orgmode."
-  (org-bullets-mode 1)
   (org-autolist-mode 1)
   (toggle-truncate-lines)
   (linum-mode -1)
@@ -359,8 +358,6 @@
 
 (use-package org-autolist :ensure t)
 
-(use-package org-bullets :ensure t)
-
 (use-package deft
   :ensure t
   :config
@@ -437,11 +434,11 @@
   (blink-cursor-mode -1))
 (setq left-fringe-width 20)
 
-(add-to-list 'default-frame-alist '(font . "IBM Plex Mono-14:antialias=true:hinting=true"))
+(add-to-list 'default-frame-alist '(font . "mononoki-15:antialias=true:hinting=true"))
 (add-to-list 'default-frame-alist '(height . 35))
 (add-to-list 'default-frame-alist '(width . 120))
 
-(setq-default line-spacing 0.2)
+(setq-default line-spacing 0.1)
 
 ;; Anzu for search matching
 (use-package anzu
@@ -993,10 +990,9 @@
     (("LWN (Linux Weekly News)" "https://lwn.net/headlines/rss")
      ("slashdot" "http://rss.slashdot.org/Slashdot/slashdot" nil 3600)
      ("Wired News" "https://www.wired.com/feed/rss"))))
- '(org-agenda-files
-   (quote
-    ("~/notes/scratch.org" "~/code/play/stockonwatch/project.org")))
+ '(org-agenda-files (quote ("~/notes/scratch.org")))
  '(org-directory "~/notes/")
+ '(org-hide-leading-stars t)
  '(org-journal-list-create-list-buffer nil)
  '(org-log-into-drawer t)
  '(org-startup-folded nil)
