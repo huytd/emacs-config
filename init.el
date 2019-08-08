@@ -358,6 +358,11 @@
 
 (use-package org-autolist :ensure t)
 
+(use-package org-bullets
+  :config
+  (setq org-bullets-bullet-list '("○" "-"))
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
 (use-package deft
   :ensure t
   :config
@@ -992,7 +997,7 @@
      ("Wired News" "https://www.wired.com/feed/rss"))))
  '(org-agenda-files (quote ("~/notes/scratch.org")))
  '(org-directory "~/notes/")
- '(org-hide-leading-stars t)
+ '(org-hide-leading-stars nil)
  '(org-journal-list-create-list-buffer nil)
  '(org-log-into-drawer t)
  '(org-startup-folded nil)
