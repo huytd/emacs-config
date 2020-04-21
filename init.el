@@ -44,6 +44,13 @@
 
 ;; PACKAGES INSTALL
 
+;; Indent guide
+(use-package highlight-indent-guides
+  :ensure t
+  :hook ((prog-mode text-mode conf-mode) . highlight-indent-guides-mode)
+  :init
+  (setq highlight-indent-guides-method 'character))
+
 ;; Centaur Tabs
 (use-package centaur-tabs
   :ensure t
@@ -175,6 +182,10 @@
 (global-set-key (kbd "s-l") 'ace-jump-line-mode)
 (global-set-key (kbd "s-+") 'text-scale-increase)
 (global-set-key (kbd "s-_") 'text-scale-decrease)
+(global-set-key (kbd "s->") 'indent-rigidly-right-to-tab-stop)
+(global-set-key (kbd "s-<") 'indent-rigidly-left-to-tab-stop)
+(global-set-key (kbd "s-<up>") 'beginning-of-buffer)
+(global-set-key (kbd "s-<down>") 'end-of-buffer)
 ;; Tabs
 (global-set-key (kbd "s-1") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 1)))
 (global-set-key (kbd "s-2") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 2)))
@@ -622,7 +633,7 @@
 
 (setq display-time-string-forms
        '((propertize (concat 24-hours ":" minutes)
- 		                 'face 'egoge-display-time)))
+                     'face 'egoge-display-time)))
 (display-time-mode 1)
 
 (setq-default mode-line-format
@@ -702,6 +713,23 @@
         (error "You're not in a project"))
     (error "helm-ag not available")))
 
+;; Set current project name to frame's title
+;; Source: https://emacs.stackexchange.com/questions/35432/how-to-set-projectile-project-name-as-frame-title
+(defun user/projectile-switch-project-action ()
+  (set-frame-parameter nil 'user/projectile-project-name projectile-project-name)
+  (projectile-run-eshell)
+  (projectile-find-file))
+
+(setq projectile-switch-project-action 'user/projectile-switch-project-action)
+
+(setq frame-title-format
+    '(""
+      (:eval
+       (let ((project-name (projectile-project-name)))
+           (if (not (string= "-" project-name))
+             (format "%s" project-name)
+             (format "%s" (frame-parameter nil 'user/projectile-project-name)))))))
+
 ;; Theme
 (use-package doom-themes :ensure t)
 (add-to-list 'custom-theme-load-path "/Users/huytran/.emacs.d/custom-themes/")
@@ -777,7 +805,7 @@
  '(org-startup-folded nil)
  '(package-selected-packages
    (quote
-    (neotree centaur-tabs frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (highlight-indent-guides neotree centaur-tabs frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(tab-width 2)
