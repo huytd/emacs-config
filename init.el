@@ -15,12 +15,8 @@
   (require 'use-package))
 
 ;; Custom packages
-(let ((default-directory  "/Users/huy/.emacs.d/custom-scripts/"))
-  (normal-top-level-add-to-load-path '("qwerty")))
-
-;; Dvorak Mode
-(require 'qwerty-mode)
-(global-qwerty-mode 1)
+(let ((default-directory  "/Users/huytran/.emacs.d/custom-scripts/"))
+  (normal-top-level-add-to-load-path '()))
 
 ;; Solving $PATH
 (let ((path "/Users/huy/.cargo/bin:/Users/huy/.nvm/versions/node/v9.6.1/bin:/usr/local/opt/texinfo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/opt/X11/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/huy/.local/bin:/Users/huy/go:/Users/huy/go/bin:/usr/local/opt/go/libexec/bin"))
@@ -46,85 +42,20 @@
   (dolist (direction '("right" "left"))
     (global-set-key (read-kbd-macro (concat "<" multiple "wheel-" direction ">")) 'ignore)))
 
-;; Appointment Setup
-(require 'appt)
-(setq appt-time-msg-list nil
-      appt-display-interval '5
-      appt-message-warning-time '10
-      appt-display-mode-line t
-      appt-display-format 'window)
-
-; Use appointment data from org-mode
-(defun sync-org-agenda-to-appt ()
-  (interactive)
-  (setq appt-time-msg-list nil)
-  (org-agenda-to-appt))
-(sync-org-agenda-to-appt)
-(add-hook 'after-save-hook
-          '(lambda ()
-             (if (string= (buffer-name) "project.org")
-                 (sync-org-agenda-to-appt))))
-
-(appt-activate 1)
-
-(defvar terminal-notifier-path
-  "/usr/local/bin/terminal-notifier")
-
-(defun user-appt-send-notification (title msg)
-  (shell-command (concat terminal-notifier-path
-                         " -message " msg
-                         " -title " title
-                         " -appIcon /Applications/Calendar.app/Contents/Resources/App-empty.icns")))
-
-(defun user-appt-display (min-to-app new-time msg)
-  (user-appt-send-notification
-   (format "'🔥 In %s minutes'" min-to-app)
-   (format "'%s'" msg)))
-
-(setq appt-disp-window-function (function user-appt-display))
-
-(setq org-agenda-window-setup 'current-window)
-
-(setq org-agenda-custom-commands
-      '(("c" "Custom agenda view"
-         ((agenda "")))))
-
-(defun show-custom-agenda-view ()
-  (interactive)
-  (org-agenda nil "c"))
-
 ;; PACKAGES INSTALL
+
+;; Centaur Tabs
+(use-package centaur-tabs
+  :ensure t
+  :init
+  (setq centaur-tabs-set-bar 'bar
+        centaur-tabs-plain-icons t
+        entaur-tabs-show-navigation-buttons t)
+  :config
+  (centaur-tabs-mode t))
 
 ;; Yasnippet
 (use-package yasnippet :ensure t)
-
-;; Dashboard
-(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-(use-package page-break-lines :ensure t)
-(use-package dashboard
-    :ensure t
-    :diminish dashboard-mode
-    :config
-    (setq dashboard-center-content t)
-    (setq dashboard-show-shortcuts nil)
-    (setq dashboard-startup-banner 2)
-    (setq dashboard-items '((recents  . 10)
-                            (projects . 10)
-                            (bookmarks . 5)))
-    (setq dashboard-set-heading-icons t)
-    (setq dashboard-set-file-icons t)
-    (setq dashboard-set-init-info t)
-    (dashboard-setup-startup-hook))
-
-;; Ranger
-(use-package ranger
-  :ensure t
-  :config
-  (setq ranger-hide-cursor nil)
-  (setq ranger-show-literal t)
-  (setq ranger-dont-show-binary t)
-  :init
-  (ranger-override-dired-mode 1))
 
 ;; Smart Parens
 (use-package smartparens
@@ -142,6 +73,9 @@
 
 ;; Linum enhancement
 (setq linum-format "  %3d ")
+
+(defun open-new-line ()
+  (interactive) (end-of-line) (newline-and-indent))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -171,8 +105,8 @@
   (push '("WORK" . "⚑" ) prettify-symbols-alist)
   (push '("DONE" . "☑" ) prettify-symbols-alist)
   (prettify-symbols-mode)
-  (set-face-attribute 'org-level-1 nil :height 1.15 :background nil :weight 'bold)
-  (set-face-attribute 'org-level-2 nil :height 1.1 :background nil :weight 'semi-bold)
+  (set-face-attribute 'org-level-1 nil :height 1.0 :background nil :weight 'bold)
+  (set-face-attribute 'org-level-2 nil :height 1.0 :background nil :weight 'semi-bold)
   (dolist (face '(org-level-3 org-level-4 org-level-5))
     (set-face-attribute face nil :weight 'normal :height 1.0)))
 
@@ -231,52 +165,24 @@
         ((looking-at "\\s)") (forward-char 1) (backward-list 1))
         (t (self-insert-command (or arg 1)))))
 
-;; Custom copy line function
-(defun copy-line (arg)
-  "Copy lines (as many as prefix argument) in the kill ring.
-      Ease of use features:
-      - Move to start of next line.
-      - Appends the copy on sequential calls.
-      - Use newline as last char even on the last line of the buffer.
-      - If region is active, copy its lines."
-  (interactive "p")
-  (let ((beg (line-beginning-position))
-        (end (line-end-position arg)))
-    (when mark-active
-      (if (> (point) (mark))
-          (setq beg (save-excursion (goto-char (mark)) (line-beginning-position)))
-        (setq end (save-excursion (goto-char (mark)) (line-end-position)))))
-    (if (eq last-command 'copy-line)
-        (kill-append (buffer-substring beg end) (< end beg))
-      (kill-ring-save beg end)))
-  (kill-append "\n" nil)
-  (beginning-of-line (or (and arg (1+ arg)) 2))
-  (if (and arg (not (= 1 arg))) (message "%d lines copied" arg)))
-
 ;; Ace Jump
 (use-package ace-jump-mode :ensure t)
 
 ;; Custom keybinding
 ;; Movement and editing
-(global-set-key (kbd "C-o") (lambda ()
-                              "insert new line"
-                              (interactive)
-                              (end-of-line)
-                              (newline-and-indent)))
-(global-set-key (kbd "C-c C-l") 'copy-line)
-(global-set-key (kbd "s-<up>") 'beginning-of-buffer)
-(global-set-key (kbd "s-<down>") 'end-of-buffer)
-(global-set-key (kbd "s-<right>") 'indent-rigidly-right-to-tab-stop)
-(global-set-key (kbd "s-<left>") 'indent-rigidly-left-to-tab-stop)
-(global-set-key (kbd "C-x SPC") 'cua-rectangle-mark-mode)
-(global-set-key (kbd "C-c l") 'join-line)
-(global-set-key (kbd "C-c n") (lambda () (interactive) (join-line -1)))
 (global-set-key (kbd "s-o") 'ace-window)
 (global-set-key (kbd "s-s") 'ace-jump-mode)
 (global-set-key (kbd "s-l") 'ace-jump-line-mode)
 (global-set-key (kbd "s-+") 'text-scale-increase)
 (global-set-key (kbd "s-_") 'text-scale-decrease)
-(global-set-key (kbd "s-<backspace>") 'backward-kill-word)
+;; Tabs
+(global-set-key (kbd "s-1") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 1)))
+(global-set-key (kbd "s-2") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 2)))
+(global-set-key (kbd "s-3") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 3)))
+(global-set-key (kbd "s-4") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 4)))
+(global-set-key (kbd "s-5") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 5)))
+(global-set-key (kbd "s-9") (lambda () (interactive) (centaur-tabs-select-end-tab)))
+(global-set-key (kbd "s-w") (lambda () (interactive) (kill-current-buffer)))
 ;; Searching
 (global-set-key (kbd "C-c s") 'helm-projectile-ag)
 (global-set-key (kbd "C-c ;") 'helm-projectile-ag)
@@ -284,35 +190,23 @@
 (global-unset-key (kbd "C-s"))
 (global-set-key (kbd "C-s") 'helm-occur)
 (global-set-key (kbd "C-;") 'helm-occur)
-;; Macro
-(defun toggle-kbd-macro-recording-on ()
-  "One-key keyboard macros: turn recording on."
-  (interactive)
-  (define-key global-map (this-command-keys)
-    'toggle-kbd-macro-recording-off)
-  (start-kbd-macro nil))
-
-(defun toggle-kbd-macro-recording-off ()
-  "One-key keyboard macros: turn recording off."
-  (interactive)
-  (define-key global-map (this-command-keys)
-    'toggle-kbd-macro-recording-on)
-  (end-kbd-macro))
-
-(global-set-key (kbd "C-,") 'toggle-kbd-macro-recording-on)
-(global-set-key (kbd "C-.") 'call-last-kbd-macro)
 ;; Functions
-(global-set-key (kbd "C-c a g") 'show-custom-agenda-view)
+(global-set-key (kbd "C-c a g") 'org-agenda-list)
 (global-set-key (kbd "C-c f f") 'json-pretty-print-buffer)
-(global-set-key (kbd "C-v") 'er/expand-region)
 (global-set-key (kbd "C-c m m") 'mc/mark-all-dwim)
 (global-set-key (kbd "C-c j") 'lsp-find-definition)
 (global-set-key (kbd "C-0") 'quickrun)
+(global-set-key (kbd "C-o") 'open-new-line)
+(global-set-key (kbd "C-j") (lambda () (interactive) (join-line -1)))
+(global-set-key (kbd "C-d") 'er/mark-word)
+(global-set-key (kbd "C-v") 'er/expand-region)
 (global-set-key (kbd "C-c SPC") 'lsp-ui-imenu)
 (global-unset-key (kbd "C-\\"))
 (global-set-key (kbd "C-\\") 'helm-M-x)
 (global-set-key (kbd "C-c p p") 'helm-projectile-switch-project)
 (global-set-key (kbd "C-c p f") 'helm-projectile-find-file)
+(global-unset-key (kbd "s-p"))
+(global-set-key (kbd "s-p") 'helm-projectile-find-file)
 (global-set-key (kbd "C-c f e d") (lambda ()
                                     "open emacs config"
                                     (interactive)
@@ -322,19 +216,11 @@
                                     (interactive)
                                     (load-file "~/.emacs.d/init.el")))
 (global-set-key (kbd "C-c a t") 'multi-term)
-(global-set-key (kbd "C-c f t") 'treemacs-select-window)
-(global-set-key (kbd "C-c f .") 'treemacs-add-and-display-current-project)
+(global-set-key (kbd "C-c f t") 'neotree-project-dir)
 (global-set-key (kbd "C-c C-c") 'lazy-highlight-cleanup)
 (global-set-key (kbd "C-c TAB") 'previous-buffer)
 (global-set-key (kbd "C-x p r") 'helm-show-kill-ring)
 (global-set-key (kbd "C-z") 'undo)
-(global-set-key (kbd "s-d") (lambda ()
-                              "delete word sexp"
-                              (interactive)
-                              (backward-sexp)
-                              (kill-sexp)))
-(global-unset-key (kbd "C-x d"))
-(global-set-key (kbd "C-x d") 'ranger)
 ;; Window management
 (global-set-key (kbd "C-c =") 'balance-windows)
 (global-set-key (kbd "C-c /") 'split-window-right)
@@ -347,26 +233,19 @@
 (global-set-key (kbd "C-s-<up>") (lambda () (interactive) (enlarge-window 10)))
 (global-set-key (kbd "C-s-<left>") (lambda () (interactive) (shrink-window-horizontally 10)))
 (global-set-key (kbd "C-s-<right>") (lambda () (interactive) (enlarge-window-horizontally 10)))
-;; org journal
-(global-set-key (kbd "C-c t n") 'org-journal-list--start)
-(global-set-key (kbd "C-c t d") (lambda ()
-                                  "open agenda"
-                                  (interactive)
-                                  (org-agenda nil "c")))
 
 (use-package htmlize :ensure t)
 
 (use-package org-autolist :ensure t)
 
-(use-package org-bullets
-  :config
-  (setq org-bullets-bullet-list '("○" "-"))
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-
 (use-package deft
   :ensure t
   :config
-  (setq deft-directory "/Users/huy/notes/"
+  (setq deft-file-naming-rules
+        '((noslash . "-")
+          (nospace . "-")
+          (case-fn . downcase)))
+  (setq deft-directory "/Users/huytran/Dropbox/notes/"
         deft-recursive t
         deft-default-extension "org"
         deft-text-mode 'org-mode
@@ -377,43 +256,8 @@
 (setq org-startup-with-inline-images t)
 (setq org-image-actual-width nil)
 (setq org-link-frame-setup '((file . find-file)))
-
-(defun org-sitemap-custom-entry-format (entry style project)
-  (let ((filename (org-publish-find-title entry project)))
-    (if (= (length filename) 0)
-        (format "*%s*" entry)
-      (format "%s - [[file:%s][%s]]"
-              (format-time-string "%Y-%m-%d" (org-publish-find-date entry project))
-              entry
-              filename))))
-
-(setq org-publish-project-alist
-      '(("org-notes"
-         :base-directory "/Users/huy/notes/src/"
-         :base-extension "org"
-         :publishing-directory "/Users/huy/code/play/huytd.github.io/"
-         :recursive t
-         :publishing-function org-html-publish-to-html
-         :exclude "rss.org\\|index.org\\|.*/private/.*"
-         :auto-sitemap t
-         :sitemap-filename "index.org"
-         :sitemap-title "jft :: CoffeeAddict\n#+SUBTITLE: jft = ( + coffee 'huy' )"
-         :sitemap-format-entry org-sitemap-custom-entry-format
-         :html-head-extra "<link rel=\"stylesheet\" href=\"/_css/style.css\">"
-         :html-link-home "/")
-        ("org-notes-static"
-         :base-directory "/Users/huy/notes/src/"
-         :recursive t
-         :base-extension "jpg\\|png\\|gif\\|mp4"
-         :publishing-directory "/Users/huy/code/play/huytd.github.io/"
-         :publishing-function org-publish-attachment)
-        ("notes" :components ("org-notes" "org-notes-static"))))
-
-(add-to-list 'org-structure-template-alist
-             '("o" "#+TITLE: ?\n#+DATE: "))
-
 (add-hook 'org-mode-hook 'enhance-ui-for-orgmode)
-
+(add-hook 'org-agenda-mode-hook 'enhance-ui-for-orgmode)
 (setq org-return-follows-link t)
 (setq org-hide-emphasis-markers t)
 (setq org-html-validation-link nil)
@@ -437,13 +281,14 @@
   (global-linum-mode 1))
 (when (fboundp 'blink-cursor-mode)
   (blink-cursor-mode -1))
-(setq left-fringe-width 20)
 
-(add-to-list 'default-frame-alist '(font . "mononoki-15:antialias=true:hinting=true"))
+(setq-default left-fringe-width 5)
+
+(add-to-list 'default-frame-alist '(font . "Haskplex Nerd-14:antialias=true:hinting=true"))
 (add-to-list 'default-frame-alist '(height . 35))
 (add-to-list 'default-frame-alist '(width . 120))
 
-(setq-default line-spacing 0.1)
+(setq-default line-spacing 0.3)
 
 ;; Anzu for search matching
 (use-package anzu
@@ -511,70 +356,6 @@
 (use-package all-the-icons-dired :ensure t
   :hook (dired-mode . all-the-icons-dired-mode))
 
-;; Treemacs
-(use-package treemacs
-  :ensure t
-  :config
-  (treemacs-follow-mode t)
-  (treemacs-git-mode 'simple)
-  (treemacs-filewatch-mode nil)
-  (treemacs-fringe-indicator-mode nil)
-  (setq treemacs-width 35
-        treemacs-max-git-entries 100
-        treemacs-display-in-side-window t
-        treemacs-deferred-git-apply-delay 0.5
-        treemacs-indentation-string (propertize " " 'face 'font-lock-comment-face)
-        treemacs-indentation 1
-        treemacs-file-follow-delay 0.2
-        treemacs-silent-filewatch t
-        treemacs-silent-refresh t)
-  (add-hook 'treemacs-mode-hook #'hide-mode-line-mode)
-  (add-hook 'treemacs-mode-hook (lambda ()
-                                  (linum-mode -1)
-                                  (fringe-mode 0)))
-  ;; Improve treemacs icons
-  (with-eval-after-load 'treemacs
-    (with-eval-after-load 'all-the-icons
-      (let ((all-the-icons-default-adjust 0)
-            (tab-width 1))
-        ;; Root icon
-        (setq treemacs-icon-root-png (concat (all-the-icons-octicon "repo" :height 0.8 :v-adjust -0.2)  " "))
-        ;; File icons
-        (setq treemacs-icon-open-png
-              (concat
-               (all-the-icons-octicon "chevron-down" :height 0.8 :v-adjust 0.1)
-               "\t"
-               (all-the-icons-octicon "file-directory" :v-adjust 0)
-               "\t")
-              treemacs-icon-closed-png
-              (concat
-               (all-the-icons-octicon "chevron-right" :height 0.8 :v-adjust 0.1 :face 'font-lock-doc-face)
-               "\t"
-               (all-the-icons-octicon "file-directory" :v-adjust 0 :face 'font-lock-doc-face)
-               "\t"))
-        ;; File type icons
-        (setq treemacs-icons-hash (make-hash-table :size 200 :test #'equal)
-              treemacs-icon-fallback (concat
-                                      "\t\t"
-                                      (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
-                                      "\t")
-              treemacs-icon-text treemacs-icon-fallback)
-        
-        (dolist (item all-the-icons-icon-alist)
-          (let* ((extension (car item))
-                 (func (cadr item))
-                 (args (append (list (caddr item)) '(:v-adjust -0.05) (cdddr item)))
-                 (icon (apply func args))
-                 (key (s-replace-all '(("^" . "") ("\\" . "") ("$" . "") ("." . "")) extension))
-                 (value (concat "\t\t" icon "\t")))
-            (unless (ht-get treemacs-icons-hash (s-replace-regexp "\\?" "" key))
-              (ht-set! treemacs-icons-hash (s-replace-regexp "\\?" "" key) value))
-            (unless (ht-get treemacs-icons-hash (s-replace-regexp ".\\?" "" key))
-              (ht-set! treemacs-icons-hash (s-replace-regexp ".\\?" "" key) value))))))))
-
-(use-package treemacs-projectile
-  :ensure t)
-
 ;; Which Key
 (use-package which-key
   :ensure t
@@ -584,11 +365,30 @@
   :config
   (which-key-mode))
 
-;; Editorconfig
-(use-package editorconfig
+;; Neotree
+(use-package neotree
   :ensure t
-  :config
-  (editorconfig-mode 1))
+  :init
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
+
+(defun neotree-project-dir ()
+  "Open NeoTree using the git root."
+  (interactive)
+  (let ((project-dir (projectile-project-root))
+        (file-name (buffer-file-name)))
+    (neotree-toggle)
+    (if project-dir
+        (if (neo-global--window-exists-p)
+            (progn
+              (neotree-dir project-dir)
+              (neotree-find file-name)))
+      (message "Could not find git project root."))))
+
+;; Editorconfig
+;;(use-package editorconfig
+;;  :ensure t
+;;  :config
+;;  (editorconfig-mode 1))
 
 ;; Git Diff
 (use-package diff-hl
@@ -607,28 +407,6 @@
 (setq mac-option-key-is-meta nil)
 (setq mac-option-modifier 'meta)
 (global-set-key (kbd "M-`") 'other-frame)
-
-;; Groovy
-(use-package groovy-mode :ensure t)
-(use-package grails-mode :ensure t)
-
-;; Arduino
-(use-package arduino-mode
-  :ensure t
-  :config
-  (setq arduino-executable "/Applications/Arduino.app/Contents/MacOS/Arduino"))
-(use-package company-arduino
-  :after (arduino-mode company)
-  :ensure t)
-
-;; Prettier
-(use-package prettier-js
-  :ensure t
-  :config
-  (add-hook 'typescript-mode-hook (lambda ()
-                                    (if (and (not (string= (projectile-project-name) "frontend"))
-                                             (not (string= (projectile-project-name) "roboshop")))
-                                        (prettier-js-mode 1)))))
 
 ;; JS TS and Web
 (use-package tide
@@ -657,13 +435,6 @@
 (use-package purescript-mode
   :ensure t
   :hook ((purescript-mode . turn-on-purescript-indentation)))
-
-;; Journal List
-(use-package org-journal-list
-  :load-path "~/code/play/org-journal-list/"
-  :config
-  (setq org-journal-list-default-directory "/Users/huy/notes/src/")
-  (setq org-journal-list-create-temp-buffer t))
 
 ;; Flycheck
 (use-package flycheck :ensure t)
@@ -786,6 +557,7 @@
 
 ;; Modeline
 (use-package hide-mode-line :ensure t)
+(global-hide-mode-line-mode -1)
 
 (setq auto-revert-check-vc-info t)
 
@@ -932,12 +704,12 @@
 
 ;; Theme
 (use-package doom-themes :ensure t)
-(add-to-list 'custom-theme-load-path "/Users/huy/.emacs.d/custom-themes/")
+(add-to-list 'custom-theme-load-path "/Users/huytran/.emacs.d/custom-themes/")
 
 (defun set-dark-theme ()
   "Set the dark theme with some customization if needed."
   (interactive)
-  (load-theme 'doom-one-light t))
+  (load-theme 'doom-city-lights t))
 
 (set-dark-theme)
 
@@ -948,6 +720,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(anzu-cons-mode-line-p nil)
+ '(centaur-tabs-mode t nil (centaur-tabs))
  '(company-idle-delay 0.1)
  '(company-require-match (quote never))
  '(custom-safe-themes
@@ -971,7 +744,7 @@
  '(helm-autoresize-max-height 0)
  '(helm-autoresize-min-height 20)
  '(helm-buffers-fuzzy-matching t)
- '(helm-completion-in-region-fuzzy-match t)
+ '(helm-completion-in-region-fuzzy-match t t)
  '(helm-echo-input-in-header-line t)
  '(helm-grep-ag-command "")
  '(helm-locate-fuzzy-match t)
@@ -995,19 +768,22 @@
     (("LWN (Linux Weekly News)" "https://lwn.net/headlines/rss")
      ("slashdot" "http://rss.slashdot.org/Slashdot/slashdot" nil 3600)
      ("Wired News" "https://www.wired.com/feed/rss"))))
- '(org-agenda-files (quote ("~/notes/scratch.org")))
- '(org-directory "~/notes/")
+ '(org-agenda-files (quote ("~/Dropbox/notes/inbox.org")))
+ '(org-agenda-window-setup (quote only-window))
+ '(org-directory "~/Dropbox/notes/")
  '(org-hide-leading-stars nil)
  '(org-journal-list-create-list-buffer nil)
  '(org-log-into-drawer t)
  '(org-startup-folded nil)
  '(package-selected-packages
    (quote
-    (frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (neotree centaur-tabs frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
+ '(tab-width 2)
  '(term-default-bg-color "#3B3333")
  '(timeclock-mode-line-display t)
+ '(typescript-indent-level 2)
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map
    (list
@@ -1040,15 +816,17 @@
  '(bold ((t (:foreground "orange1" :weight extra-bold))))
  '(centaur-active-bar-face ((t (:inherit minibuffer-prompt))))
  '(centaur-tabs-default ((t (:inherit tabbar-default :background "#E7E7E7"))))
- '(centaur-tabs-selected ((t (:inherit tabbar-selected))))
+ '(centaur-tabs-selected ((t (:inherit tabbar-selected :background "#5f6c78" :foreground "#A0B3C5"))))
  '(centaur-tabs-selected-modified ((t (:inherit tabbar-selected-modified))))
- '(centaur-tabs-unselected ((t (:inherit tabbar-unselected))))
+ '(centaur-tabs-unselected ((t (:inherit nil :background "#293036" :foreground "#5f6c78"))))
  '(centaur-tabs-unselected-modified ((t (:inherit tabbar-unselected-modified))))
+ '(font-lock-comment-face ((t (:foreground "#56697A" :slant italic))))
+ '(font-lock-string-face ((t (:foreground "#7FA0B7" :slant italic))))
  '(fringe ((t (:background nil))))
  '(frog-menu-posframe-background-face ((t (:inherit default :background "#efefef"))))
  '(helm-grep-finish ((t (:inherit font-lock-string-face))))
  '(helm-locate-finish ((t (:inherit font-lock-string-face))))
- '(helm-match ((t (:foreground "white" :inverse-video nil))))
+ '(helm-match ((t (:inherit font-lock-string-face))))
  '(helm-prefarg ((t (:inherit font-lock-string-face))))
  '(helm-rg-active-arg-face ((t (:inherit font-lock-string-face))))
  '(helm-rg-file-match-face ((t (:inherit font-lock-string-face :underline t))))
@@ -1059,7 +837,10 @@
  '(lsp-face-highlight-textual ((t (:background "#4271ae" :foreground "#FFFFFF" :weight normal))))
  '(lsp-ui-doc-background ((t (:background "#f8f8f8"))))
  '(markdown-code-face ((t (:background "#eeeeee"))))
- '(mode-line ((t (:background "#F0F0F0" :box (:line-width 2 :color "#F0F0F0")))))
+ '(mode-line ((t (:background "#1E2328" :box (:line-width 2 :color "#1E2328")))))
+ '(mode-line-inactive ((t (:foreground "#485060" :box nil))))
+ '(org-agenda-date-today ((t (:background "#229986" :foreground "#ffffff" :box (:line-width 2 :color "#229986") :weight bold :height 1.0))))
+ '(org-scheduled-today ((t (:foreground "#759d21" :weight bold :height 1.0))))
  '(term ((t (:inherit default :foreground "#383a42"))))
  '(term-bold ((t (:background "#3B3333" :weight bold))))
  '(term-color-black ((t (:background "#211C1C" :foreground "#211C1C"))))
