@@ -16,7 +16,7 @@
 
 ;; Custom packages
 (let ((default-directory  "/Users/huytran/.emacs.d/custom-scripts/"))
-  (normal-top-level-add-to-load-path '()))
+  (normal-top-level-add-to-load-path '( "elegance" )))
 
 ;; Solving $PATH
 (let ((path "/Users/huy/.cargo/bin:/Users/huy/.nvm/versions/node/v9.6.1/bin:/usr/local/opt/texinfo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/opt/X11/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/huy/.local/bin:/Users/huy/go:/Users/huy/go/bin:/usr/local/opt/go/libexec/bin"))
@@ -43,23 +43,6 @@
     (global-set-key (read-kbd-macro (concat "<" multiple "wheel-" direction ">")) 'ignore)))
 
 ;; PACKAGES INSTALL
-
-;; Indent guide
-(use-package highlight-indent-guides
-  :ensure t
-  :hook ((prog-mode text-mode conf-mode) . highlight-indent-guides-mode)
-  :init
-  (setq highlight-indent-guides-method 'character))
-
-;; Centaur Tabs
-(use-package centaur-tabs
-  :ensure t
-  :init
-  (setq centaur-tabs-set-bar 'bar
-        centaur-tabs-plain-icons t
-        entaur-tabs-show-navigation-buttons t)
-  :config
-  (centaur-tabs-mode t))
 
 ;; Yasnippet
 (use-package yasnippet :ensure t)
@@ -186,13 +169,6 @@
 (global-set-key (kbd "s-<") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "s-<up>") 'beginning-of-buffer)
 (global-set-key (kbd "s-<down>") 'end-of-buffer)
-;; Tabs
-(global-set-key (kbd "s-1") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 1)))
-(global-set-key (kbd "s-2") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 2)))
-(global-set-key (kbd "s-3") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 3)))
-(global-set-key (kbd "s-4") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 4)))
-(global-set-key (kbd "s-5") (lambda () (interactive) (centaur-tabs-select-visible-nth-tab 5)))
-(global-set-key (kbd "s-9") (lambda () (interactive) (centaur-tabs-select-end-tab)))
 (global-set-key (kbd "s-w") (lambda () (interactive) (kill-current-buffer)))
 ;; Searching
 (global-set-key (kbd "C-c s") 'helm-projectile-ag)
@@ -205,7 +181,6 @@
 (global-set-key (kbd "C-c a g") 'org-agenda-list)
 (global-set-key (kbd "C-c f f") 'json-pretty-print-buffer)
 (global-set-key (kbd "C-c m m") 'mc/mark-all-dwim)
-(global-set-key (kbd "C-c j") 'lsp-find-definition)
 (global-set-key (kbd "C-0") 'quickrun)
 (global-set-key (kbd "C-o") 'open-new-line)
 (global-set-key (kbd "C-j") (lambda () (interactive) (join-line -1)))
@@ -236,9 +211,13 @@
 (global-set-key (kbd "C-c =") 'balance-windows)
 (global-set-key (kbd "C-c /") 'split-window-right)
 (global-set-key (kbd "C-c \\") 'split-window-below)
+(global-set-key (kbd "C-c l") 'windmove-right)
+(global-set-key (kbd "C-c h") 'windmove-left)
+(global-set-key (kbd "C-c j") 'windmove-down)
+(global-set-key (kbd "C-c k") 'windmove-up)
 (global-set-key (kbd "C-x w n") 'make-frame)
 (global-set-key (kbd "C-x w k") (lambda () (interactive) (projectile-kill-buffers) (delete-frame)))
-(global-set-key (kbd "C-c k") 'delete-window)
+(global-set-key (kbd "C-c w x") 'delete-window)
 (global-set-key (kbd "C-x w .") 'kill-buffer-and-window)
 (global-set-key (kbd "C-s-<down>") (lambda () (interactive) (shrink-window 10)))
 (global-set-key (kbd "C-s-<up>") (lambda () (interactive) (enlarge-window 10)))
@@ -295,7 +274,7 @@
 
 (setq-default left-fringe-width 5)
 
-(add-to-list 'default-frame-alist '(font . "Haskplex Nerd-14:antialias=true:hinting=true"))
+(add-to-list 'default-frame-alist '(font . "Roboplex-14:antialias=true:hinting=false"))
 (add-to-list 'default-frame-alist '(height . 35))
 (add-to-list 'default-frame-alist '(width . 120))
 
@@ -380,7 +359,12 @@
 (use-package neotree
   :ensure t
   :init
+  (setq neo-autorefresh t)
   (setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
+
+(add-hook 'neotree-mode-hook (lambda ()
+                               (interactive)
+                               (linum-mode -1)))
 
 (defun neotree-project-dir ()
   "Open NeoTree using the git root."
@@ -411,7 +395,7 @@
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
 ;;(add-to-list 'default-frame-alist '(undecorated . t))
-(add-to-list 'default-frame-alist '(internal-border-width . 10))
+(add-to-list 'default-frame-alist '(internal-border-width . 24))
 (setq ns-use-proxy-icon  nil)
 (setq frame-title-format nil)
 (setq mac-allow-anti-aliasing t)
@@ -737,9 +721,13 @@
 (defun set-dark-theme ()
   "Set the dark theme with some customization if needed."
   (interactive)
-  (load-theme 'doom-city-lights t))
+  (load-theme 'kiwi t))
 
 (set-dark-theme)
+
+;;; ELEGANT EMACS MOD
+(require 'elegance)
+;;;;;;;;;;;;;;;;;;;;;
 
 ;; Automatically generated
 (custom-set-variables
@@ -748,7 +736,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(anzu-cons-mode-line-p nil)
- '(centaur-tabs-mode t nil (centaur-tabs))
  '(company-idle-delay 0.1)
  '(company-require-match (quote never))
  '(custom-safe-themes
@@ -805,7 +792,7 @@
  '(org-startup-folded nil)
  '(package-selected-packages
    (quote
-    (highlight-indent-guides neotree centaur-tabs frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (chess highlight-indent-guides neotree frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(tab-width 2)
@@ -843,11 +830,6 @@
  '(aw-leading-char-face ((t (:foreground "red" :inverse-video t :weight bold :height 1.1))))
  '(bold ((t (:foreground "orange1" :weight extra-bold))))
  '(centaur-active-bar-face ((t (:inherit minibuffer-prompt))))
- '(centaur-tabs-default ((t (:inherit tabbar-default :background "#E7E7E7"))))
- '(centaur-tabs-selected ((t (:inherit tabbar-selected :background "#5f6c78" :foreground "#A0B3C5"))))
- '(centaur-tabs-selected-modified ((t (:inherit tabbar-selected-modified))))
- '(centaur-tabs-unselected ((t (:inherit nil :background "#293036" :foreground "#5f6c78"))))
- '(centaur-tabs-unselected-modified ((t (:inherit tabbar-unselected-modified))))
  '(font-lock-comment-face ((t (:foreground "#56697A" :slant italic))))
  '(font-lock-string-face ((t (:foreground "#7FA0B7" :slant italic))))
  '(fringe ((t (:background nil))))
@@ -865,8 +847,8 @@
  '(lsp-face-highlight-textual ((t (:background "#4271ae" :foreground "#FFFFFF" :weight normal))))
  '(lsp-ui-doc-background ((t (:background "#f8f8f8"))))
  '(markdown-code-face ((t (:background "#eeeeee"))))
- '(mode-line ((t (:background "#1E2328" :box (:line-width 2 :color "#1E2328")))))
- '(mode-line-inactive ((t (:foreground "#485060" :box nil))))
+;; '(mode-line ((t (:background "#1E2328" :box (:line-width 2 :color "#1E2328")))))
+;; '(mode-line-inactive ((t (:foreground "#485060" :box nil))))
  '(org-agenda-date-today ((t (:background "#229986" :foreground "#ffffff" :box (:line-width 2 :color "#229986") :weight bold :height 1.0))))
  '(org-scheduled-today ((t (:foreground "#759d21" :weight bold :height 1.0))))
  '(term ((t (:inherit default :foreground "#383a42"))))
