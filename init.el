@@ -16,7 +16,7 @@
 
 ;; Custom packages
 (let ((default-directory  "/Users/huytran/.emacs.d/custom-scripts/"))
-  (normal-top-level-add-to-load-path '( "elegance" )))
+  (normal-top-level-add-to-load-path '( "elegance" "md-roam" )))
 
 ;; Solving $PATH
 (let ((path "/Users/huy/.cargo/bin:/Users/huy/.nvm/versions/node/v9.6.1/bin:/usr/local/opt/texinfo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/opt/X11/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/huy/.local/bin:/Users/huy/go:/Users/huy/go/bin:/usr/local/opt/go/libexec/bin"))
@@ -29,6 +29,7 @@
 ;; Other configs
 (setq confirm-kill-emacs 'yes-or-no-p)
 (global-auto-revert-mode 1)
+(global-visual-line-mode 1)
 (setq ring-bell-function 'ignore)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -62,12 +63,19 @@
 (setq-default truncate-lines -1)
 
 ;; Linum enhancement
-(setq linum-format "  %3d ")
+;;(setq linum-format "  %3d ")
 
 (defun open-new-line ()
   (interactive) (end-of-line) (newline-and-indent))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package org-agenda-property :ensure t)
+
+(use-package org-bullets
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 (setq-default fill-column 70)
@@ -80,6 +88,38 @@
  `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)" 1 'org-checkbox-done-text prepend))
  'append)
 
+;; Org Roam Export
+
+(defun my/org-roam--backlinks-list-with-content (file)
+  (with-temp-buffer
+    (if-let* ((backlinks (org-roam--get-backlinks file))
+              (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+        (progn
+          (insert (format "\n\n-----\n*Referred in %d notes*\n"
+                          (length backlinks)))
+          (dolist (group grouped-backlinks)
+            (let ((file-from (car group))
+                  (bls (cdr group)))
+              (insert (format " - [[file:%s][%s]]: "
+                              file-from
+                              (org-roam--get-title-or-slug file-from)))
+              (dolist (backlink bls)
+                (pcase-let ((`(,file-from _ ,props) backlink))
+                  (insert (s-trim (s-replace "\n" " " (plist-get props :content))))
+                  (insert "\n\n")))))))
+    (buffer-string)))
+
+  (defun my/org-export-preprocessor (backend)
+    (let ((links (my/org-roam--backlinks-list-with-content (buffer-file-name))))
+      (unless (string= links "")
+        (save-excursion
+          (goto-char (point-max))
+          (insert links)))))
+
+  (add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
+
+;; Enhance UI for Org Mode
+
 (defun enhance-ui-for-orgmode ()
   "Enhance UI for orgmode."
   (org-autolist-mode 1)
@@ -91,6 +131,10 @@
   (push '("[-]" . "❍" ) prettify-symbols-alist)
   (push '("#+BEGIN_SRC" . "⌜" ) prettify-symbols-alist)
   (push '("#+END_SRC" . "⌞" ) prettify-symbols-alist)
+  (push '("#+BEGIN_EXAMPLE" . "⌜" ) prettify-symbols-alist)
+  (push '("#+END_EXAMPLE" . "⌞" ) prettify-symbols-alist)
+  (push '("#+BEGIN_QUOTE" . "⌜" ) prettify-symbols-alist)
+  (push '("#+END_QUOTE" . "⌞" ) prettify-symbols-alist)
   (push '("TODO" . "☐" ) prettify-symbols-alist)
   (push '("WORK" . "⚑" ) prettify-symbols-alist)
   (push '("DONE" . "☑" ) prettify-symbols-alist)
@@ -104,6 +148,21 @@
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+
+;; Roam
+(use-package org-roam
+      :ensure t
+      :hook
+      (after-init . org-roam-mode)
+      :custom
+      (org-roam-directory "~/code/play/roam/")
+      :bind (:map org-roam-mode-map
+              (("C-c n l" . org-roam)
+               ("C-c n f" . org-roam-find-file)
+               ("C-c n g" . org-roam-graph))
+              :map org-mode-map
+              (("C-c n i" . org-roam-insert))
+              (("C-c n I" . org-roam-insert-immediate))))
 
 ;; Deleting
 (delete-selection-mode 1)
@@ -228,19 +287,79 @@
 
 (use-package org-autolist :ensure t)
 
+;; Langtool for grammar checking
+(use-package langtool
+  :ensure t
+  :config
+  (setq langtool-language-tool-jar "/Users/huytran/LanguageTool/languagetool-commandline.jar")
+  (setq langtool-default-language "en-US")
+  (setq langtool-disabled-rules '("ARROWS"
+                                  "WHITESPACE_RULE"
+                                  "SENTNCE_WHITESPACE"
+                                  "UNLIKELY_OPENING_PNCTUATION"
+                                  "CHILDISH_LANGUAGE"
+                                  "WORD_CONTAIS_UNDERSCORE"
+                                  "SETUP_VERB"
+                                  "EN_QUOTES"
+                                  "COMMA_PARENTHESIS_WITESPACE"
+                                  "DASH_RULE"
+                                  "MULTIPLICATIONSIGN")))
+
+;; SETUP DEFT FOR MARKDOWN NOTE TAKING, YES, I'M NOT KIDDING!
+
+;; Rename current file and all its backlinks
+(defun rename-current-file-and-backlinks (new-name &optional args)
+  (interactive "*fEnter new file name: \nP")
+  (let ((original-link-name (file-name-sans-extension (file-relative-name buffer-file-name)))
+        (new-link-name (file-name-sans-extension (file-relative-name new-name)))
+        (filename (buffer-file-name)))
+  (progn
+    ;; Rename buffer and file name
+    (rename-file filename new-name 1)
+    (rename-buffer new-name)
+    (set-visited-file-name new-name)
+    (set-buffer-modified-p nil)
+    ;; Relink all notes
+    (shell-command (concat "note-relink" " " "--from=" original-link-name " " "--to=" new-link-name))
+    ;; Replace current file title
+    (save-restriction
+      (goto-char (point-min))
+      (while (search-forward (concat "title: " original-link-name) nil t)
+        (replace-match (concat "title: " new-link-name)))))))
+
+;; Insert image in clipboard to markdown
+(defun insert-clipboard-image-to-buffer (filename &optional args)
+  (interactive "*fSave image to: \nP")
+  (shell-command (concat "pasteimage " filename))
+  (insert (concat "![](" (file-relative-name filename) ")")))
+
+;; Insert file names to current buffer
+(defun insert-file-name-as-wikilink (filename &optional args)
+  (interactive "*fInsert file name: \nP")
+  (insert (concat "[[" (file-name-sans-extension (file-relative-name filename)) "]]")))
+
+(setq markdown-enable-wiki-links t)
+(setq markdown-link-space-sub-char " ")
+
+;; Hook for markdown mode
+(add-hook 'markdown-mode-hook (lambda ()
+                                (define-key markdown-mode-map (kbd "C-c r") 'rename-current-file-and-backlinks)
+                                (define-key markdown-mode-map (kbd "C-c i") 'insert-file-name-as-wikilink)
+                                (define-key markdown-mode-map (kbd "C-c u") 'insert-clipboard-image-to-buffer)))
+
+;; Deft Package
 (use-package deft
   :ensure t
   :config
-  (setq deft-file-naming-rules
-        '((noslash . "-")
-          (nospace . "-")
-          (case-fn . downcase)))
-  (setq deft-directory "/Users/huytran/Dropbox/notes/"
+  (setq deft-directory "~/code/play/wiki/content/"
         deft-recursive t
-        deft-default-extension "org"
+        deft-default-extension "md"
         deft-text-mode 'org-mode
+        deft-use-filename-as-title t
         deft-use-filter-string-for-filename t)
   (global-set-key (kbd "C-c d") 'deft))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; OrgMode Configs
 (setq org-startup-with-inline-images t)
@@ -258,6 +377,40 @@
         ("WORK"    . "#eb4d4b")
         ("DONE"    . "#6ab04c")))
 
+(defun org-sitemap-custom-entry-format (entry style project)
+  (let ((filename (org-publish-find-title entry project)))
+    (if (= (length filename) 0)
+        (format "*%s*" entry)
+      (format "%s - [[file:%s][%s]]"
+              (format-time-string "%Y-%m-%d" (org-publish-find-date entry project))
+              entry
+              filename))))
+
+(setq org-publish-project-alist
+      '(("org-notes"
+         :base-directory "~/code/play/roam/"
+         :base-extension "org"
+         :publishing-directory "~/code/play/roam-public/"
+         :recursive t
+         :publishing-function org-html-publish-to-html
+         :exclude "rss.org\\|index.org\\|.*/private/.*"
+         :auto-sitemap t
+         :sitemap-filename "index.org"
+         :sitemap-title "notes"
+         :sitemap-format-entry org-sitemap-custom-entry-format
+         :html-head-extra "<link rel=\"stylesheet\" href=\"/_css/style.css\">"
+         :html-link-home "/")
+        ("org-notes-static"
+         :base-directory "~/code/play/roam/"
+         :recursive t
+         :base-extension "jpg\\|png\\|gif\\|mp4"
+         :publishing-directory "~/code/play/roam-public/"
+         :publishing-function org-publish-attachment)
+        ("notes" :components ("org-notes" "org-notes-static"))))
+
+(add-to-list 'org-structure-template-alist
+             '("o" "#+TITLE: ?\n#+DATE: "))
+
 ;; UI configurations
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
@@ -268,13 +421,13 @@
 (when (fboundp 'menu-bar-mode)
   (menu-bar-mode   -1))
 (when (fboundp 'global-linum-mode)
-  (global-linum-mode 1))
+  (global-linum-mode -1))
 (when (fboundp 'blink-cursor-mode)
   (blink-cursor-mode -1))
 
 (setq-default left-fringe-width 5)
 
-(add-to-list 'default-frame-alist '(font . "Roboplex-14:antialias=true:hinting=false"))
+(add-to-list 'default-frame-alist '(font . "SF Mono-14:antialias=true:hinting=false"))
 (add-to-list 'default-frame-alist '(height . 35))
 (add-to-list 'default-frame-alist '(width . 120))
 
@@ -753,7 +906,7 @@
  '(haskell-process-args-ghci (quote ("ghci")))
  '(haskell-process-path-ghci "stack")
  '(haskell-process-type (quote stack-ghci))
- '(helm-M-x-fuzzy-match t)
+ '(helm-M-x-fuzzy-match t t)
  '(helm-ag-base-command "rg --no-heading --ignore-case -M300")
  '(helm-ag-use-temp-buffer t)
  '(helm-autoresize-max-height 0)
@@ -783,16 +936,15 @@
     (("LWN (Linux Weekly News)" "https://lwn.net/headlines/rss")
      ("slashdot" "http://rss.slashdot.org/Slashdot/slashdot" nil 3600)
      ("Wired News" "https://www.wired.com/feed/rss"))))
- '(org-agenda-files (quote ("~/Dropbox/notes/inbox.org")))
- '(org-agenda-window-setup (quote only-window))
- '(org-directory "~/Dropbox/notes/")
+ '(org-directory "~/code/play/roam/" nil nil "Customized with use-package org-roam")
  '(org-hide-leading-stars nil)
  '(org-journal-list-create-list-buffer nil)
  '(org-log-into-drawer t)
+ '(org-roam-directory "~/code/play/roam/" t)
  '(org-startup-folded nil)
  '(package-selected-packages
    (quote
-    (chess highlight-indent-guides neotree frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
+    (langtool org-agenda-property chess highlight-indent-guides neotree frog-jump-buffer org-ql prettier-js treemacs-projectile treemacs hide-mode-line ranger shrink-path ace-jump lsp-haskell multiple-cursors expand-region purescript-mode company-arduino all-the-icons-dired groovy-mode multi-term deft ace-jump-mode package-lint emacs-htmlize helm-ag cargo org-autolist smartparens wrap-region lsp-javascript-typescript haskell-mode magit elm-mode lsp-symbol-outline outline-magic company-lsp web-mode tide quickrun org-bullets lsp-ui flycheck-rust flycheck-inline lsp-rust f lsp-mode rust-mode company diff-hl editorconfig general which-key helm use-package)))
  '(send-mail-function (quote smtpmail-send-it))
  '(shr-width 75)
  '(tab-width 2)
@@ -829,7 +981,6 @@
  '(ace-jump-face-foreground ((t (:foreground "red" :weight semi-bold))))
  '(aw-leading-char-face ((t (:foreground "red" :inverse-video t :weight bold :height 1.1))))
  '(bold ((t (:foreground "orange1" :weight extra-bold))))
- '(centaur-active-bar-face ((t (:inherit minibuffer-prompt))))
  '(font-lock-comment-face ((t (:foreground "#56697A" :slant italic))))
  '(font-lock-string-face ((t (:foreground "#7FA0B7" :slant italic))))
  '(fringe ((t (:background nil))))
@@ -840,16 +991,13 @@
  '(helm-prefarg ((t (:inherit font-lock-string-face))))
  '(helm-rg-active-arg-face ((t (:inherit font-lock-string-face))))
  '(helm-rg-file-match-face ((t (:inherit font-lock-string-face :underline t))))
- '(helm-selection ((t (:inherit bold :background "#000000" :inverse-video t))))
+ '(helm-selection ((t (:inherit bold :background "#000000" :foreground "#ffffff"))))
  '(helm-source-header ((t (:weight bold :height 1.0))))
  '(helm-visible-mark ((t nil)))
  '(js2-function-param ((t (:foreground "#F18D73"))))
  '(lsp-face-highlight-textual ((t (:background "#4271ae" :foreground "#FFFFFF" :weight normal))))
  '(lsp-ui-doc-background ((t (:background "#f8f8f8"))))
  '(markdown-code-face ((t (:background "#eeeeee"))))
-;; '(mode-line ((t (:background "#1E2328" :box (:line-width 2 :color "#1E2328")))))
-;; '(mode-line-inactive ((t (:foreground "#485060" :box nil))))
- '(org-agenda-date-today ((t (:background "#229986" :foreground "#ffffff" :box (:line-width 2 :color "#229986") :weight bold :height 1.0))))
  '(org-scheduled-today ((t (:foreground "#759d21" :weight bold :height 1.0))))
  '(term ((t (:inherit default :foreground "#383a42"))))
  '(term-bold ((t (:background "#3B3333" :weight bold))))

@@ -45,10 +45,6 @@
   (setq org-link-frame-setup '((file . find-file))))
 ;; -------------------------------------------------------------------
 
-
-;; Font and frame size
-(set-face-font 'default "Roboto Mono Light 14")
-
 ;; Line spacing, can be 0 for code and 1 or 2 for text
 (setq-default line-spacing 0)
 
@@ -149,9 +145,6 @@ background color that is barely perceptible."
 
 
 ;; Mode line (this might be slow because of the "☰" that requires substitution)
-;; This line below makes things a bit faster
-(set-fontset-font "fontset-default"  '(#x2600 . #x26ff) "Fira Code 16")
-
 (define-key mode-line-major-mode-keymap [header-line]
   (lookup-key mode-line-major-mode-keymap [mode-line]))
 
